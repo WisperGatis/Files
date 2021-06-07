@@ -1219,10 +1219,6 @@ namespace Files.Views
             UpdatePositioning();
         }
 
-        /// <summary>
-        /// Call this function to update the positioning of the preview pane.
-        /// This is a workaround as the VisualStateManager causes problems.
-        /// </summary>
         private void UpdatePositioning()
         {
             if (!LoadPreviewPane || PreviewPaneDropShadowPanel is null || PreviewPane is null)
