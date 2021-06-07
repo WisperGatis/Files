@@ -35,13 +35,8 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
-
 namespace Files.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class ColumnShellPage : Page, IShellPage, INotifyPropertyChanged
     {
         private readonly StorageHistoryHelpers storageHistoryHelpers;
@@ -253,12 +248,6 @@ namespace Files.Views
             }
         }
 
-        /*
-         * Ensure that the path bar gets updated for user interaction
-         * whenever the path changes. We will get the individual directories from
-         * the updated, most-current path and add them to the UI.
-         */
-
         public void UpdatePathUIToWorkingDirectory(string newWorkingDir, string singleItemOverride = null)
         {
             if (string.IsNullOrWhiteSpace(singleItemOverride))
@@ -278,7 +267,7 @@ namespace Files.Views
             }
             else
             {
-                NavigationToolbar.PathComponents.Clear(); // Clear the path UI
+                NavigationToolbar.PathComponents.Clear(); 
                 NavigationToolbar.IsSingleItemOverride = true;
                 NavigationToolbar.PathComponents.Add(new Views.PathBoxItem() { Path = null, Title = singleItemOverride });
             }
@@ -318,7 +307,6 @@ namespace Files.Views
             }
             else
             {
-                // TODO: Add fancy file launch options similar to Interactions.cs OpenSelectedItems()
                 await Win32Helpers.InvokeWin32ComponentAsync(e.SelectedSuggestion.ItemPath, this);
             }
         }
@@ -434,11 +422,8 @@ namespace Files.Views
                         ItemName = "NavigationToolbarVisiblePathNoResults".GetLocalized() } };
                     }
 
-                    // NavigationBarSuggestions becoming empty causes flickering of the suggestion box
-                    // Here we check whether at least an element is in common between old and new list
                     if (!mNavToolbar.NavigationBarSuggestions.IntersectBy(suggestions, x => x.ItemName).Any())
                     {
-                        // No elements in common, update the list in-place
                         for (int si = 0; si < suggestions.Count; si++)
                         {
                             if (si < mNavToolbar.NavigationBarSuggestions.Count)
@@ -458,7 +443,6 @@ namespace Files.Views
                     }
                     else
                     {
-                        // At least an element in common, show animation
                         foreach (var s in mNavToolbar.NavigationBarSuggestions.ExceptBy(suggestions, x => x.ItemName).ToList())
                         {
                             mNavToolbar.NavigationBarSuggestions.Remove(s);
@@ -510,7 +494,6 @@ namespace Files.Views
                 {
                     Icon = new FontIcon { Glyph = "\uE7BA" },
                     Text = "SubDirectoryAccessDenied".GetLocalized(),
-                    //Foreground = (SolidColorBrush)Application.Current.Resources["SystemControlErrorTextForegroundBrush"],
                     FontSize = 12
                 };
                 flyout.Items.Add(flyoutItem);
@@ -617,9 +600,9 @@ namespace Files.Views
                                               {
                                                   NavPathParam = pathToNavigate,
                                                   AssociatedTabInstance = this
-                                              }); // navigate to folder
+                                              }); 
                     }
-                    else // Not a folder or inaccessible
+                    else 
                     {
                         var resFile = await FilesystemTasks.Wrap(() => StorageFileExtensions.DangerousGetFileWithPathFromPathAsync(currentInput, item));
                         if (resFile)
@@ -627,14 +610,13 @@ namespace Files.Views
                             var pathToInvoke = resFile.Result.Path;
                             await Win32Helpers.InvokeWin32ComponentAsync(pathToInvoke, this);
                         }
-                        else // Not a file or not accessible
+                        else 
                         {
                             var workingDir = string.IsNullOrEmpty(FilesystemViewModel.WorkingDirectory)
                                     || CurrentPageType == typeof(WidgetsPage)
                                 ? AppSettings.HomePath
                                 : FilesystemViewModel.WorkingDirectory;
 
-                            // Launch terminal application if possible
                             foreach (var terminal in AppSettings.TerminalController.Model.Terminals)
                             {
                                 if (terminal.Path.Equals(currentInput, StringComparison.OrdinalIgnoreCase)
@@ -898,7 +880,6 @@ namespace Files.Views
             NavigationToolbar.IsSearchBoxVisible = false;
             if (ItemDisplayFrame.CurrentSourcePageType == typeof(ColumnViewBase))
             {
-                // Reset DataGrid Rows that may be in "cut" command mode
                 ContentPage.ResetItemOpacity();
             }
             var parameters = e.Parameter as NavigationArguments;
@@ -920,21 +901,21 @@ namespace Files.Views
 
             switch (c: ctrl, s: shift, a: alt, t: tabInstance, k: args.KeyboardAccelerator.Key)
             {
-                case (true, false, false, true, VirtualKey.Z): // ctrl + z, undo
+                case (true, false, false, true, VirtualKey.Z): 
                     if (!InstanceViewModel.IsPageTypeSearchResults)
                     {
                         await storageHistoryHelpers.TryUndo();
                     }
                     break;
 
-                case (true, false, false, true, VirtualKey.Y): // ctrl + y, redo
+                case (true, false, false, true, VirtualKey.Y): 
                     if (!InstanceViewModel.IsPageTypeSearchResults)
                     {
                         await storageHistoryHelpers.TryRedo();
                     }
                     break;
 
-                case (true, true, false, true, VirtualKey.N): // ctrl + shift + n, new item
+                case (true, true, false, true, VirtualKey.N): 
                     if (InstanceViewModel.CanCreateFileInPage)
                     {
                         var addItemDialog = new AddItemDialog();
@@ -949,7 +930,7 @@ namespace Files.Views
                     }
                     break;
 
-                case (false, true, false, true, VirtualKey.Delete): // shift + delete, PermanentDelete
+                case (false, true, false, true, VirtualKey.Delete): 
                     if (ContentPage.IsItemSelected && !NavigationToolbar.IsEditModeEnabled && !InstanceViewModel.IsPageTypeSearchResults)
                     {
                         await FilesystemHelpers.DeleteItemsAsync(
@@ -961,7 +942,7 @@ namespace Files.Views
 
                     break;
 
-                case (true, false, false, true, VirtualKey.C): // ctrl + c, copy
+                case (true, false, false, true, VirtualKey.C): 
                     if (!NavigationToolbar.IsEditModeEnabled && !ContentPage.IsRenamingItem)
                     {
                         UIFilesystemHelpers.CopyItem(this);
@@ -969,7 +950,7 @@ namespace Files.Views
 
                     break;
 
-                case (true, false, false, true, VirtualKey.V): // ctrl + v, paste
+                case (true, false, false, true, VirtualKey.V): 
                     if (!NavigationToolbar.IsEditModeEnabled && !ContentPage.IsRenamingItem && !InstanceViewModel.IsPageTypeSearchResults)
                     {
                         await UIFilesystemHelpers.PasteItemAsync(FilesystemViewModel.WorkingDirectory, this);
@@ -977,7 +958,7 @@ namespace Files.Views
 
                     break;
 
-                case (true, false, false, true, VirtualKey.X): // ctrl + x, cut
+                case (true, false, false, true, VirtualKey.X): 
                     if (!NavigationToolbar.IsEditModeEnabled && !ContentPage.IsRenamingItem)
                     {
                         UIFilesystemHelpers.CutItem(this);
@@ -985,7 +966,7 @@ namespace Files.Views
 
                     break;
 
-                case (true, false, false, true, VirtualKey.A): // ctrl + a, select all
+                case (true, false, false, true, VirtualKey.A): 
                     if (!NavigationToolbar.IsEditModeEnabled && !ContentPage.IsRenamingItem)
                     {
                         this.SlimContentPage.ItemManipulationModel.SelectAllItems();
@@ -993,7 +974,7 @@ namespace Files.Views
 
                     break;
 
-                case (false, false, false, true, VirtualKey.Delete): // delete, delete item
+                case (false, false, false, true, VirtualKey.Delete): 
                     if (ContentPage.IsItemSelected && !ContentPage.IsRenamingItem && !InstanceViewModel.IsPageTypeSearchResults)
                     {
                         await FilesystemHelpers.DeleteItemsAsync(
@@ -1005,7 +986,7 @@ namespace Files.Views
 
                     break;
 
-                case (false, false, false, true, VirtualKey.Space): // space, quick look
+                case (false, false, false, true, VirtualKey.Space): 
                     if (!NavigationToolbar.IsEditModeEnabled && !NavigationToolbar.IsSearchBoxVisible)
                     {
                         if (App.MainViewModel.IsQuickLookEnabled)
@@ -1019,26 +1000,26 @@ namespace Files.Views
                     AppSettings.PreviewPaneEnabled = !AppSettings.PreviewPaneEnabled;
                     break;
 
-                case (true, false, false, true, VirtualKey.R): // ctrl + r, refresh
+                case (true, false, false, true, VirtualKey.R): 
                     if (!InstanceViewModel.IsPageTypeSearchResults)
                     {
                         Refresh_Click();
                     }
                     break;
 
-                case (false, false, true, _, VirtualKey.D): // alt + d, select address bar (english)
-                case (true, false, false, _, VirtualKey.L): // ctrl + l, select address bar
+                case (false, false, true, _, VirtualKey.D): 
+                case (true, false, false, _, VirtualKey.L):
                     NavigationToolbar.IsEditModeEnabled = true;
                     break;
 
-                case (false, false, false, _, VirtualKey.F1): // F1, open Files wiki
+                case (false, false, false, _, VirtualKey.F1): 
                     await Launcher.LaunchUriAsync(new Uri(@"https://files-community.github.io/docs"));
                     break;
             };
 
             switch (args.KeyboardAccelerator.Key)
             {
-                case VirtualKey.F2: //F2, rename
+                case VirtualKey.F2: 
                     if (CurrentPageType == (typeof(DetailsLayoutBrowser)) || CurrentPageType == typeof(GridViewBrowser) || CurrentPageType == typeof(ColumnViewBrowser) || CurrentPageType == typeof(ColumnViewBase))
 
                     {
@@ -1110,7 +1091,7 @@ namespace Files.Views
             InstanceViewModel.FolderSettings.SortDirectionPreferenceUpdated -= AppSettings_SortDirectionPreferenceUpdated;
             InstanceViewModel.FolderSettings.SortOptionPreferenceUpdated -= AppSettings_SortOptionPreferenceUpdated;
 
-            if (FilesystemViewModel != null)    // Prevent weird case of this being null when many tabs are opened/closed quickly
+            if (FilesystemViewModel != null) 
             {
                 FilesystemViewModel.WorkingDirectoryModified -= ViewModel_WorkingDirectoryModified;
                 FilesystemViewModel.ItemLoadStatusChanged -= FilesystemViewModel_ItemLoadStatusChanged;
@@ -1142,15 +1123,14 @@ namespace Files.Views
 
                 case ItemLoadStatusChangedEventArgs.ItemLoadStatus.Complete:
                     NavigationToolbar.CanRefresh = true;
-                    // Select previous directory
+
                     if (!string.IsNullOrWhiteSpace(e.PreviousDirectory))
                     {
                         if (e.PreviousDirectory.Contains(e.Path) && !e.PreviousDirectory.Contains("Shell:RecycleBinFolder"))
                         {
-                            // Remove the WorkingDir from previous dir
+
                             e.PreviousDirectory = e.PreviousDirectory.Replace(e.Path, string.Empty);
 
-                            // Get previous dir name
                             if (e.PreviousDirectory.StartsWith('\\'))
                             {
                                 e.PreviousDirectory = e.PreviousDirectory.Remove(0, 1);
@@ -1160,10 +1140,8 @@ namespace Files.Views
                                 e.PreviousDirectory = e.PreviousDirectory.Split('\\')[0];
                             }
 
-                            // Get the first folder and combine it with WorkingDir
                             string folderToSelect = string.Format("{0}\\{1}", e.Path, e.PreviousDirectory);
 
-                            // Make sure we don't get double \\ in the e.Path
                             folderToSelect = folderToSelect.Replace("\\\\", "\\");
 
                             if (folderToSelect.EndsWith('\\'))
@@ -1361,7 +1339,6 @@ namespace Files.Views
 
         private bool previewPaneEnabled = App.AppSettings.PreviewPaneEnabled;
 
-        // This is needed so the layout can be updated when the preview pane is opened
         public bool PreviewPaneEnabled
         {
             get => previewPaneEnabled;
