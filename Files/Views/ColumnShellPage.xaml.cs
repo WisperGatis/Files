@@ -1305,7 +1305,7 @@ namespace Files.Views
                 string.IsNullOrEmpty(FilesystemViewModel?.WorkingDirectory) ||
                 navigationPath.TrimEnd(Path.DirectorySeparatorChar).Equals(
                     FilesystemViewModel.WorkingDirectory.TrimEnd(Path.DirectorySeparatorChar),
-                    StringComparison.OrdinalIgnoreCase)) // return if already selected
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     return;
                 }
