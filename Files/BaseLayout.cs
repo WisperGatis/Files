@@ -33,9 +33,6 @@ using static Files.Helpers.PathNormalization;
 
 namespace Files
 {
-    /// <summary>
-    /// The base class which every layout page must derive from
-    /// </summary>
     public abstract class BaseLayout : Page, IBaseLayout, INotifyPropertyChanged
     {
         private readonly DispatcherTimer jumpTimer;
@@ -121,8 +118,6 @@ namespace Files
             get => jumpString;
             set
             {
-                // If current string is "a", and the next character typed is "a",
-                // search for next file that starts with "a" (a.k.a. _jumpString = "a")
                 if (jumpString.Length == 1 && value == jumpString + jumpString)
                 {
                     value = jumpString;
@@ -132,7 +127,6 @@ namespace Files
                     ListedItem jumpedToItem = null;
                     ListedItem previouslySelectedItem = null;
 
-                    // Use FilesAndFolders because only displayed entries should be jumped to
                     IEnumerable<ListedItem> candidateItems = ParentShellPageInstance.FilesystemViewModel.FilesAndFolders.Where(f => f.ItemName.Length >= value.Length && f.ItemName.Substring(0, value.Length).ToLower() == value);
 
                     if (IsItemSelected)
@@ -140,11 +134,8 @@ namespace Files
                         previouslySelectedItem = SelectedItem;
                     }
 
-                    // If the user is trying to cycle through items
-                    // starting with the same letter
                     if (value.Length == 1 && previouslySelectedItem != null)
                     {
-                        // Try to select item lexicographically bigger than the previous item
                         jumpedToItem = candidateItems.FirstOrDefault(f => f.ItemName.CompareTo(previouslySelectedItem.ItemName) > 0);
                     }
                     if (jumpedToItem == null)
@@ -158,7 +149,6 @@ namespace Files
                         ItemManipulationModel.ScrollIntoView(jumpedToItem);
                     }
 
-                    // Restart the timer
                     jumpTimer.Start();
                 }
                 jumpString = value;
@@ -243,7 +233,6 @@ namespace Files
             SelectedItemsPropertiesViewModel = new SelectedItemsPropertiesViewModel();
             DirectoryPropertiesViewModel = new DirectoryPropertiesViewModel();
 
-            // QuickLook Integration
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             var isQuickLookIntegrationEnabled = localSettings.Values["quicklook_enabled"];
 
@@ -283,7 +272,6 @@ namespace Files
         {
             if (CollectionViewSource.IsSourceGrouped)
             {
-                // add all items from each group to the new list
                 return (CollectionViewSource.Source as BulkConcurrentObservableCollection<GroupedCollection<ListedItem>>)?.SelectMany(g => g);
             }
 
@@ -332,7 +320,6 @@ namespace Files
                         AssociatedTabInstance = ParentShellPageInstance
                     });
 
-                    // Remove old layout from back stack
                     ParentShellPageInstance.RemoveLastPageFromBackStack();
                 }
             }
@@ -348,7 +335,7 @@ namespace Files
         protected override async void OnNavigatedTo(NavigationEventArgs eventArgs)
         {
             base.OnNavigatedTo(eventArgs);
-            // Add item jumping handler
+
             Window.Current.CoreWindow.CharacterReceived += Page_CharacterReceived;
             navigationArguments = (NavigationArguments)eventArgs.Parameter;
             ParentShellPageInstance = navigationArguments.AssociatedTabInstance;
@@ -366,10 +353,9 @@ namespace Files
                 string previousDir = ParentShellPageInstance.FilesystemViewModel.WorkingDirectory;
                 await ParentShellPageInstance.FilesystemViewModel.SetWorkingDirectoryAsync(navigationArguments.NavPathParam);
 
-                // pathRoot will be empty on recycle bin path
                 var workingDir = ParentShellPageInstance.FilesystemViewModel.WorkingDirectory;
                 string pathRoot = GetPathRoot(workingDir);
-                if (string.IsNullOrEmpty(pathRoot) || workingDir.StartsWith(AppSettings.RecycleBinPath)) // Can't go up from recycle bin
+                if (string.IsNullOrEmpty(pathRoot) || workingDir.StartsWith(AppSettings.RecycleBinPath))
                 {
                     ParentShellPageInstance.NavigationToolbar.CanNavigateToParent = false;
                 }
@@ -395,7 +381,7 @@ namespace Files
             {
                 ParentShellPageInstance.NavigationToolbar.CanRefresh = false;
                 ParentShellPageInstance.NavigationToolbar.CanGoForward = false;
-                ParentShellPageInstance.NavigationToolbar.CanGoBack = true;  // Impose no artificial restrictions on back navigation. Even in a search results page.
+                ParentShellPageInstance.NavigationToolbar.CanGoBack = true;
                 ParentShellPageInstance.NavigationToolbar.CanNavigateToParent = false;
                 ParentShellPageInstance.InstanceViewModel.IsPageTypeRecycleBin = false;
                 ParentShellPageInstance.InstanceViewModel.IsPageTypeMtpDevice = false;
@@ -408,13 +394,13 @@ namespace Files
                 }
             }
 
-            ParentShellPageInstance.InstanceViewModel.IsPageTypeNotHome = true; // show controls that were hidden on the home page
+            ParentShellPageInstance.InstanceViewModel.IsPageTypeNotHome = true;
             ParentShellPageInstance.LoadPreviewPaneChanged();
             ParentShellPageInstance.FilesystemViewModel.UpdateGroupOptions();
             UpdateCollectionViewSource();
             FolderSettings.IsLayoutModeChanging = false;
 
-            ItemManipulationModel.FocusFileList(); // Set focus on layout specific file list control
+            ItemManipulationModel.FocusFileList(); 
 
             try
             {
@@ -440,7 +426,6 @@ namespace Files
         private CancellationTokenSource groupingCancellationToken;
         private async void FolderSettings_GroupOptionPreferenceUpdated(object sender, EventArgs e)
         {
-            // Two or more of these running at the same time will cause a crash, so cancel the previous one before beginning
             groupingCancellationToken?.Cancel();
             groupingCancellationToken = new CancellationTokenSource();
             var token = groupingCancellationToken.Token;
@@ -453,7 +438,6 @@ namespace Files
         {
             base.OnNavigatingFrom(e);
 
-            // Remove item jumping handler
             Window.Current.CoreWindow.CharacterReceived -= Page_CharacterReceived;
             FolderSettings.LayoutModeChangeRequested -= FolderSettings_LayoutModeChangeRequested;
             FolderSettings.GroupOptionPreferenceUpdated -= FolderSettings_GroupOptionPreferenceUpdated;
@@ -471,7 +455,7 @@ namespace Files
         {
             try
             {
-                if (!IsItemSelected) // Workaround for item sometimes not getting selected
+                if (!IsItemSelected) 
                 {
                     if (((sender as Microsoft.UI.Xaml.Controls.CommandBarFlyout)?.Target as ListViewItem)?.Content is ListedItem li)
                     {
@@ -541,7 +525,6 @@ namespace Files
             {
                 if (item is ShortcutItem)
                 {
-                    // Can't drag shortcut items
                     continue;
                 }
                 else if (item.PrimaryItemAttribute == StorageItemTypes.File)
@@ -575,7 +558,6 @@ namespace Files
                 var item = itemObj as ListedItem;
                 if (item == null || item is ShortcutItem)
                 {
-                    // Can't drag shortcut items
                     continue;
                 }
 
@@ -609,7 +591,6 @@ namespace Files
             ListedItem item = GetItemFromElement(sender);
             if (item == dragOverItem)
             {
-                // Reset dragged over item
                 dragOverItem = null;
             }
         }
@@ -683,7 +664,7 @@ namespace Files
                 {
                     e.DragUIOverride.Caption = $"{"OpenItemsWithCaptionText".GetLocalized()} {item.ItemName}";
                     e.AcceptedOperation = DataPackageOperation.Link;
-                } // Items from the same drive as this folder are dragged into this folder, so we move the items instead of copy
+                }
                 else if (draggedItems.AreItemsInSameDrive(item.ItemPath))
                 {
                     e.DragUIOverride.Caption = string.Format("MoveToFolderCaptionText".GetLocalized(), item.ItemName);
@@ -704,7 +685,7 @@ namespace Files
             var deferral = e.GetDeferral();
 
             e.Handled = true;
-            dragOverItem = null; // Reset dragged over item
+            dragOverItem = null; 
 
             ListedItem rowItem = GetItemFromElement(sender);
             if (rowItem != null)
@@ -743,7 +724,6 @@ namespace Files
             element.Drop -= Item_Drop;
         }
 
-        // VirtualKey doesn't support / accept plus and minus by default.
         public readonly VirtualKey PlusKey = (VirtualKey)187;
 
         public readonly VirtualKey MinusKey = (VirtualKey)189;
@@ -784,7 +764,6 @@ namespace Files
         {
             if (!e.IsSourceZoomedInView)
             {
-                // According to the docs this isn't necessary, but it would crash otherwise
                 var destination = e.DestinationItem.Item as GroupedCollection<ListedItem>;
                 e.DestinationItem.Item = destination.FirstOrDefault();
             }
