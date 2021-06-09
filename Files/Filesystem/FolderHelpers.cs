@@ -52,16 +52,11 @@ namespace Files.Filesystem
             if (Path.IsPathRooted(path) && Path.GetPathRoot(path) == path)
             {
                 IDictionary<string, object> extraProperties = await rootFolder.Properties.RetrievePropertiesAsync(new string[] { "System.Volume.BitLockerProtection" });
-                return (int?)extraProperties["System.Volume.BitLockerProtection"] == 6; // Drive is bitlocker protected and locked
+                return (int?)extraProperties["System.Volume.BitLockerProtection"] == 6;
             }
             return false;
         }
 
-        /// <summary>
-        /// This function is used to determine whether or not a folder has any contents.
-        /// </summary>
-        /// <param name="targetPath">The path to the target folder</param>
-        ///
         public static bool CheckForFilesFolders(string targetPath)
         {
             FINDEX_INFO_LEVELS findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoBasic;

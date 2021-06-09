@@ -22,7 +22,6 @@ namespace Files.UserControls
             set => SetValue(DirectoryPropertiesViewModelProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for DirectoryPropertiesViewModel.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty DirectoryPropertiesViewModelProperty =
             DependencyProperty.Register(nameof(DirectoryPropertiesViewModel), typeof(DirectoryPropertiesViewModel), typeof(StatusBarControl), new PropertyMetadata(null));
 
@@ -44,7 +43,6 @@ namespace Files.UserControls
             set => SetValue(ShowInfoTextProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for HideInfoText.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ShowInfoTextProperty =
             DependencyProperty.Register(nameof(ShowInfoText), typeof(bool), typeof(StatusBarControl), new PropertyMetadata(null));
 

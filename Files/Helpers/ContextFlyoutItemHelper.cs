@@ -54,11 +54,10 @@ namespace Files.Helpers
             var overflow = items.Where(x => x.ID == "ItemOverflow").FirstOrDefault();
             if (overflow != null)
             {
-                if (!shiftPressed && App.AppSettings.MoveOverflowMenuItemsToSubMenu) // items with ShowOnShift to overflow menu
+                if (!shiftPressed && App.AppSettings.MoveOverflowMenuItemsToSubMenu)
                 {
                     var overflowItems = items.Where(x => x.ShowOnShift).ToList();
 
-                    // Adds a separator between items already there and the new ones
                     if (overflow.Items.Count != 0 && overflow.Items.Last().ItemType != ItemType.Separator && overflowItems.Count > 0)
                     {
                         overflow.Items.Add(new ContextMenuFlyoutItemViewModel{ ItemType = ItemType.Separator });
@@ -68,7 +67,6 @@ namespace Files.Helpers
                     overflowItems.ForEach(x => overflow.Items.Add(x));
                 }
 
-                // remove the overflow if it has no child items
                 if (overflow.Items.Count == 0)
                 {
                     items.Remove(overflow);
@@ -80,8 +78,8 @@ namespace Files.Helpers
 
         private static bool Check(ContextMenuFlyoutItemViewModel item, CurrentInstanceViewModel currentInstanceViewModel, List<ListedItem> selectedItems, bool shiftPressed)
         {
-            return (item.ShowInRecycleBin || !currentInstanceViewModel.IsPageTypeRecycleBin) // Hide non-recycle bin items
-                && (!item.ShowInCloudDrive || currentInstanceViewModel.IsPageTypeCloudDrive) // Hide non-cloud drive items
+            return (item.ShowInRecycleBin || !currentInstanceViewModel.IsPageTypeRecycleBin) 
+                && (!item.ShowInCloudDrive || currentInstanceViewModel.IsPageTypeCloudDrive) 
                 && (!item.SingleItemOnly || selectedItems.Count == 1)
                 && item.ShowItem;
         }
@@ -103,7 +101,6 @@ namespace Files.Helpers
                     ShowInRecycleBin = true,
                     Items = new List<ContextMenuFlyoutItemViewModel>()
                     {
-                        // Details view
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutDetails/Text".GetLocalized(),
@@ -113,7 +110,6 @@ namespace Files.Helpers
                             CommandParameter = true,
                             KeyboardAccelerator = new KeyboardAccelerator{Key = VirtualKey.Number1, Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, IsEnabled = false}
                         },
-                        // Tiles view
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutTilesView/Text".GetLocalized(),
@@ -123,7 +119,6 @@ namespace Files.Helpers
                             CommandParameter = true,
                             KeyboardAccelerator = new KeyboardAccelerator{Key = VirtualKey.Number2, Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, IsEnabled = false}
                         },
-                        // Grid view small
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutGridViewSmall/Text".GetLocalized(),
@@ -133,7 +128,6 @@ namespace Files.Helpers
                             CommandParameter = true,
                             KeyboardAccelerator = new KeyboardAccelerator{Key = VirtualKey.Number3, Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, IsEnabled = false}
                         },
-                        // Grid view medium
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutGridViewMedium/Text".GetLocalized(),
@@ -143,7 +137,6 @@ namespace Files.Helpers
                             CommandParameter = true,
                             KeyboardAccelerator = new KeyboardAccelerator{Key = VirtualKey.Number4, Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, IsEnabled = false}
                         },
-                        // Grid view large
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutGridViewLarge/Text".GetLocalized(),
@@ -153,7 +146,6 @@ namespace Files.Helpers
                             CommandParameter = true,
                             KeyboardAccelerator = new KeyboardAccelerator{Key = VirtualKey.Number5, Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, IsEnabled = false}
                         },
-                        // Column view
                         new ContextMenuFlyoutItemViewModel()
                         {
                             Text = "BaseLayoutContextFlyoutColumn/Text".GetLocalized(),
@@ -725,7 +717,6 @@ namespace Files.Helpers
             {
                 if (i.Icon != null)
                 {
-                    // loading the bitmaps takes a while, so this caches them
                     var bitmap = cachedNewItemItems?.Where(x => x.Text == i.Name).FirstOrDefault()?.BitmapIcon;
                     if (bitmap == null)
                     {

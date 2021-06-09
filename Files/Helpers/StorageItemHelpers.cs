@@ -7,9 +7,6 @@ using Windows.Storage;
 
 namespace Files.Helpers
 {
-    /// <summary>
-    /// <see cref="IStorageItem"/> related Helpers
-    /// </summary>
     public static class StorageItemHelpers
     {
         public static async Task<IStorageItem> ToStorageItem(this IStorageItemWithPath item, IShellPage associatedInstance = null)
@@ -24,13 +21,10 @@ namespace Files.Helpers
 
             if (path.ToLower().EndsWith(".lnk") || path.ToLower().EndsWith(".url"))
             {
-                // TODO: In the future, when IStorageItemWithPath will inherit from IStorageItem,
-                //      we could implement this code here for getting .lnk files
-                //      for now, we can't
 
                 return default;
 
-                if (false) // Prevent unnecessary exceptions
+                if (false) 
                 {
                     Debugger.Break();
                     throw new ArgumentException("Function ToStorageItem<TOut>() does not support converting from .lnk and .url files");
@@ -47,17 +41,16 @@ namespace Files.Helpers
             }
             else if (typeof(IStorageItem).IsAssignableFrom(typeof(TOut)))
             {
-                if (System.IO.Path.HasExtension(path)) // Probably a file
+                if (System.IO.Path.HasExtension(path)) 
                 {
                     await GetFile();
                 }
-                else // Possibly a folder
+                else
                 {
                     await GetFolder();
 
                     if (!folder)
                     {
-                        // It wasn't a folder, so check file then because it wasn't checked
                         await GetFile();
                     }
                 }
@@ -73,8 +66,6 @@ namespace Files.Helpers
             }
 
             return default;
-
-            // Extensions
 
             async Task GetFile()
             {

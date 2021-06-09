@@ -22,10 +22,6 @@ using Windows.UI.Xaml.Input;
 
 namespace Files.Interacts
 {
-    /// <summary>
-    /// This class provides default implementation for BaseLayout commands.
-    /// This class can be also inherited from and functions overridden to provide custom functionality
-    /// </summary>
     public class BaseLayoutCommandImplementationModel : IBaseLayoutCommandImplementationModel
     {
         #region Singleton

@@ -54,9 +54,9 @@ namespace Files.Filesystem
             {
                 return FileSystemStatusCode.Unauthorized;
             }
-            else if (ex is FileNotFoundException // Item was deleted
-                || ex is System.Runtime.InteropServices.COMException // Item's drive was ejected
-                || (uint)ex.HResult == 0x8007000F) // The system cannot find the drive specified
+            else if (ex is FileNotFoundException 
+                || ex is System.Runtime.InteropServices.COMException 
+                || (uint)ex.HResult == 0x8007000F) 
             {
                 return FileSystemStatusCode.NotFound;
             }
@@ -68,7 +68,7 @@ namespace Files.Filesystem
             {
                 return FileSystemStatusCode.NameTooLong;
             }
-            else if (ex is ArgumentException) // Item was invalid
+            else if (ex is ArgumentException) 
             {
                 return (T == typeof(StorageFolder) || T == typeof(StorageFolderWithPath)) ?
                     FileSystemStatusCode.NotAFolder : FileSystemStatusCode.NotAFile;
@@ -81,9 +81,9 @@ namespace Files.Filesystem
             {
                 return FileSystemStatusCode.ReadOnly;
             }
-            else if ((uint)ex.HResult == 0x800700A1 // The specified path is invalid (usually an mtp device was disconnected)
-                || (uint)ex.HResult == 0x8007016A // The cloud file provider is not running
-                || (uint)ex.HResult == 0x8000000A) // The data necessary to complete this operation is not yet available)
+            else if ((uint)ex.HResult == 0x800700A1 
+                || (uint)ex.HResult == 0x8007016A 
+                || (uint)ex.HResult == 0x8000000A) 
             {
                 return FileSystemStatusCode.Generic;
             }

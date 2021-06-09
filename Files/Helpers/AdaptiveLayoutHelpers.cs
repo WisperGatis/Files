@@ -88,10 +88,8 @@ namespace Files.Helpers
 
                     !string.IsNullOrEmpty(item.FileExtension)
 
-                    // Images
                     && (ImagePreviewViewModel.Extensions.Any((ext) => item.FileExtension.Equals(ext, StringComparison.OrdinalIgnoreCase))
 
-                    // Audio & Video
                     || MediaPreviewViewModel.Extensions.Any((ext) => item.FileExtension.Equals(ext, StringComparison.OrdinalIgnoreCase))
                     )).Count();
 
@@ -100,9 +98,9 @@ namespace Files.Helpers
                 int otherFilesCount = filesystemViewModel.FilesAndFolders.Count - (imagesAndVideosCount + foldersCount);
 
                 if (foldersCount > 0)
-                { // There are folders in current directory
+                { 
                     if ((filesystemViewModel.FilesAndFolders.Count - imagesAndVideosCount) < (filesystemViewModel.FilesAndFolders.Count - 20) || (filesystemViewModel.FilesAndFolders.Count <= 20 && imagesAndVideosCount >= 5))
-                    { // Most of items are images/videos
+                    { 
                         folderSettings.ToggleLayoutModeTiles.Execute(false);
                     }
                     else
@@ -111,17 +109,17 @@ namespace Files.Helpers
                     }
                 }
                 else
-                { // There are only files
+                {
                     if (imagesAndVideosCount == filesystemViewModel.FilesAndFolders.Count)
-                    { // Only images/videos
+                    { 
                         folderSettings.ToggleLayoutModeGridView.Execute(folderSettings.GridViewSize);
                     }
                     else if (otherFilesCount < 20)
-                    { // Most of files are images/videos
+                    { 
                         folderSettings.ToggleLayoutModeTiles.Execute(false);
                     }
                     else
-                    { // Images/videos and other files
+                    { 
                         folderSettings.ToggleLayoutModeDetailsView.Execute(false);
                     }
                 }

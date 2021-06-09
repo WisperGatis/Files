@@ -109,8 +109,6 @@ namespace Files.Helpers
                 Template = fileName,
                 Name = displayType,
                 Command = (string)key.GetValue("Command"),
-                //Name = (string)key.GetValue("ItemName"),
-                //IconPath = (string)key.GetValue("IconPath"),
                 Icon = thumbnail?.Result,
                 Data = data
             };

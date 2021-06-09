@@ -20,7 +20,7 @@ namespace Files.Filesystem.Search
         public string Query { get; set; }
         public string Folder { get; set; }
 
-        public uint MaxItemCount { get; set; } = 0; // 0: no limit
+        public uint MaxItemCount { get; set; } = 0;
         public uint ThumbnailSize { get; set; } = 24;
         public bool SearchUnindexedItems { get; set; } = false;
 
@@ -153,7 +153,7 @@ namespace Files.Filesystem.Search
                                     LoadFileIcon = false,
                                     LoadUnknownTypeGlyph = true,
                                     LoadFolderGlyph = false,
-                                    ItemPropertiesInitialized = false, // Load thumbnail
+                                    ItemPropertiesInitialized = false, 
                                     FileExtension = itemFileExtension,
                                     ItemType = itemType,
                                     Opacity = isHidden ? Constants.UI.DimItemOpacity : 1

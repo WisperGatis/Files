@@ -35,8 +35,6 @@ namespace Files.Helpers
 
             ThemeFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Themes", CreationCollisionOption.OpenIfExists);
 
-            // This is used to migrate to the new theme setting
-            // It can be removed in a future update
             if (ApplicationData.Current.LocalSettings.Values.TryGetValue("PathToThemeFile", out var path))
             {
                 var pathStr = path as string;

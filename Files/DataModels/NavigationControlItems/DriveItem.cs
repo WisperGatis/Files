@@ -192,7 +192,7 @@ namespace Files.DataModels.NavigationControlItems
                         FreeSpace.ToBinaryString().ConvertSizeAbbreviation(),
                         MaxSpace.ToBinaryString().ConvertSizeAbbreviation());
 
-                    if (FreeSpace.Bytes > 0 && MaxSpace.Bytes > 0) // Make sure we don't divide by 0
+                    if (FreeSpace.Bytes > 0 && MaxSpace.Bytes > 0) 
                     {
                         PercentageUsed = 100.0f - ((float)(FreeSpace.Bytes / MaxSpace.Bytes) * 100.0f);
                     }
@@ -233,15 +233,15 @@ namespace Files.DataModels.NavigationControlItems
                     break;
 
                 case DriveType.NoRootDirectory:
-                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg"); // TODO
+                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg"); 
                     break;
 
                 case DriveType.VirtualDrive:
-                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg"); // TODO
+                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg");
                     break;
 
                 case DriveType.CloudDrive:
-                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg"); // TODO
+                    IconSource = new Uri("ms-appx:///Assets/FluentIcons/Folder.svg");
                     break;
 
                 case DriveType.FloppyDisk:

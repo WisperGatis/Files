@@ -15,7 +15,6 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
-// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Files.UserControls
 {
@@ -27,14 +26,12 @@ namespace Files.UserControls
             this.InitializeComponent();
         }
 
-        // Dismiss banner button event handler
         private void DismissBanner(object sender, RoutedEventArgs e)
         {
             StatusBanner itemToDismiss = (sender as Button).DataContext as StatusBanner;
             StatusCenterViewModel.CloseBanner(itemToDismiss);
         }
 
-        // Primary action button click
         private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
             StatusBanner itemToDismiss = (sender as Button).DataContext as StatusBanner;

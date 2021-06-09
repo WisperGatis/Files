@@ -17,8 +17,6 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// Il modello di elemento Controllo utente è documentato all'indirizzo https://go.microsoft.com/fwlink/?LinkId=234236
-
 namespace Files.UserControls
 {
     public sealed partial class DataGridHeader : UserControl, INotifyPropertyChanged

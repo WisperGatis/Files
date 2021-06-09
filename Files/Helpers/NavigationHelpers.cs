@@ -63,7 +63,6 @@ namespace Files.Helpers
         {
             if (associatedInstance.FilesystemViewModel.WorkingDirectory.StartsWith(App.AppSettings.RecycleBinPath))
             {
-                // Do not open files and folders inside the recycle bin
                 return;
             }
             if (associatedInstance.SlimContentPage == null)
@@ -86,7 +85,6 @@ namespace Files.Helpers
         {
             if (associatedInstance.FilesystemViewModel.WorkingDirectory.StartsWith(App.AppSettings.RecycleBinPath))
             {
-                // Do not open files and folders inside the recycle bin
                 return;
             }
             if (associatedInstance.SlimContentPage == null)
@@ -101,30 +99,18 @@ namespace Files.Helpers
                 }
                 catch (Exception e)
                 {
-                    // This is to try and figure out the root cause of AppCenter error #985932119u
                     App.Logger.Warn(e, e.Message);
                 }
             }
         }
 
-        /// <summary>
-        /// Navigates to a directory or opens file
-        /// </summary>
-        /// <param name="path">The path to navigate to or open</param>
-        /// <param name="associatedInstance">The instance associated with view</param>
-        /// <param name="itemType"></param>
-        /// <param name="openSilent">Determines whether history of opened item is saved (... to Recent Items/Windows Timeline/opening in background)</param>
-        /// <param name="openViaApplicationPicker">Determines whether open file using application picker</param>
-        /// <param name="selectItems">List of filenames that are selected upon navigation</param>
         public static async Task<bool> OpenPath(string path, IShellPage associatedInstance, FilesystemItemType? itemType = null, bool openSilent = false, bool openViaApplicationPicker = false, IEnumerable<string> selectItems = null, string args = default)
-        // TODO: This function reliability has not been extensively tested
         {
             string previousDir = associatedInstance.FilesystemViewModel.WorkingDirectory;
             bool isHiddenItem = NativeFileOperationsHelper.HasFileAttribute(path, System.IO.FileAttributes.Hidden);
-            bool isShortcutItem = path.EndsWith(".lnk") || path.EndsWith(".url"); // Determine
+            bool isShortcutItem = path.EndsWith(".lnk") || path.EndsWith(".url"); 
             FilesystemResult opened = (FilesystemResult)false;
 
-            // Shortcut item variables
             string shortcutTargetPath = null;
             string shortcutArguments = null;
             string shortcutWorkingDirectory = null;
@@ -173,7 +159,7 @@ namespace Files.Helpers
 
             var mostRecentlyUsed = Windows.Storage.AccessCache.StorageApplicationPermissions.MostRecentlyUsedList;
 
-            if (itemType == FilesystemItemType.Library) // OpenLibrary
+            if (itemType == FilesystemItemType.Library) 
             {
                 if (isHiddenItem)
                 {
@@ -200,7 +186,7 @@ namespace Files.Helpers
                     }
                 }
             }
-            else if (itemType == FilesystemItemType.Directory) // OpenDirectory
+            else if (itemType == FilesystemItemType.Directory)
             {
                 if (isShortcutItem)
                 {
@@ -238,7 +224,6 @@ namespace Files.Helpers
                     opened = await associatedInstance.FilesystemViewModel.GetFolderWithPathFromPathAsync(path)
                         .OnSuccess(childFolder =>
                         {
-                            // Add location to MRU List
                             mostRecentlyUsed.Add(childFolder.Folder, childFolder.Path);
                         });
                     if (!opened)
@@ -261,7 +246,7 @@ namespace Files.Helpers
                     }
                 }
             }
-            else if (itemType == FilesystemItemType.File) // OpenFile
+            else if (itemType == FilesystemItemType.File) 
             {
                 if (isShortcutItem)
                 {
@@ -276,7 +261,6 @@ namespace Files.Helpers
                             StorageFileWithPath childFile = await associatedInstance.FilesystemViewModel.GetFileWithPathFromPathAsync(shortcutTargetPath);
                             if (childFile != null)
                             {
-                                // Add location to MRU List
                                 mostRecentlyUsed.Add(childFile.File, childFile.Path);
                             }
                         }
@@ -293,7 +277,6 @@ namespace Files.Helpers
                     opened = await associatedInstance.FilesystemViewModel.GetFileWithPathFromPathAsync(path)
                         .OnSuccess(async childFile =>
                         {
-                            // Add location to MRU List
                             mostRecentlyUsed.Add(childFile.File, childFile.Path);
 
                             if (openViaApplicationPicker)
@@ -306,25 +289,20 @@ namespace Files.Helpers
                             }
                             else
                             {
-                                //try using launcher first
                                 bool launchSuccess = false;
 
                                 StorageFileQueryResult fileQueryResult = null;
 
-                                //Get folder to create a file query (to pass to apps like Photos, Movies & TV..., needed to scroll through the folder like what Windows Explorer does)
                                 StorageFolder currentFolder = await associatedInstance.FilesystemViewModel.GetFolderFromPathAsync(System.IO.Path.GetDirectoryName(path));
 
                                 if (currentFolder != null)
                                 {
                                     QueryOptions queryOptions = new QueryOptions(CommonFileQuery.DefaultQuery, null);
 
-                                    //We can have many sort entries
                                     SortEntry sortEntry = new SortEntry()
                                     {
                                         AscendingOrder = associatedInstance.InstanceViewModel.FolderSettings.DirectorySortDirection == Microsoft.Toolkit.Uwp.UI.SortDirection.Ascending
                                     };
-
-                                    //Basically we tell to the launched app to follow how we sorted the files in the directory.
 
                                     var sortOption = associatedInstance.InstanceViewModel.FolderSettings.DirectorySortOption;
 
@@ -348,25 +326,7 @@ namespace Files.Helpers
                                             queryOptions.SortOrder.Add(sortEntry);
                                             break;
 
-                                        //Unfortunately this is unsupported | Remarks: https://docs.microsoft.com/en-us/uwp/api/windows.storage.search.queryoptions.sortorder?view=winrt-19041
-                                        //case Enums.SortOption.Size:
-
-                                        //sortEntry.PropertyName = "System.TotalFileSize";
-                                        //queryOptions.SortOrder.Clear();
-                                        //queryOptions.SortOrder.Add(sortEntry);
-                                        //break;
-
-                                        //Unfortunately this is unsupported | Remarks: https://docs.microsoft.com/en-us/uwp/api/windows.storage.search.queryoptions.sortorder?view=winrt-19041
-                                        //case Enums.SortOption.FileType:
-
-                                        //sortEntry.PropertyName = "System.FileExtension";
-                                        //queryOptions.SortOrder.Clear();
-                                        //queryOptions.SortOrder.Add(sortEntry);
-                                        //break;
-
-                                        //Handle unsupported
                                         default:
-                                            //keep the default one in SortOrder IList
                                             break;
                                     }
 
@@ -377,7 +337,6 @@ namespace Files.Helpers
                                         NeighboringFilesQuery = fileQueryResult
                                     };
 
-                                    // Now launch file with options.
                                     launchSuccess = await Launcher.LaunchFileAsync(childFile.File, options);
                                 }
 

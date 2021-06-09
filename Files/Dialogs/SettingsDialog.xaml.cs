@@ -11,7 +11,6 @@ namespace Files.Dialogs
     {
         public SettingsViewModel AppSettings => App.AppSettings;
 
-        // for some reason the requested theme wasn't being set on the content dialog, so this is used to manually bind to the requested app theme
         FrameworkElement RootAppElement => Window.Current.Content as FrameworkElement;
 
         public SettingsDialog()

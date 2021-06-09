@@ -7,9 +7,6 @@ using Windows.Storage;
 
 namespace Files.Helpers
 {
-    /// <summary>
-    /// UWP Implementation of ILogger
-    /// </summary>
     public class UniversalLogWriter : ILogWriter
     {
         StorageFile logFile;

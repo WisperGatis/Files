@@ -16,7 +16,7 @@ namespace Files.Helpers
             DynamicDialog dialog = new DynamicDialog(new DynamicDialogViewModel()
             {
                 TitleText = "PropertySaveErrorDialog/Title".GetLocalized(),
-                SubtitleText = "PropertySaveErrorMessage/Text".GetLocalized(), // We can use subtitle here as our content
+                SubtitleText = "PropertySaveErrorMessage/Text".GetLocalized(), 
                 PrimaryButtonText = "PropertySaveErrorDialog/PrimaryButtonText".GetLocalized(),
                 SecondaryButtonText = "PropertySaveErrorDialog/SecondaryButtonText".GetLocalized(),
                 CloseButtonText = "PropertySaveErrorDialog/CloseButtonText".GetLocalized(),
@@ -30,7 +30,7 @@ namespace Files.Helpers
             DynamicDialog dialog = new DynamicDialog(new DynamicDialogViewModel()
             {
                 TitleText = "WelcomeDialog/Title".GetLocalized(),
-                SubtitleText = "WelcomeDialogTextBlock/Text".GetLocalized(), // We can use subtitle here as our content
+                SubtitleText = "WelcomeDialogTextBlock/Text".GetLocalized(), 
                 PrimaryButtonText = "WelcomeDialog/PrimaryButtonText".GetLocalized(),
                 PrimaryButtonAction = async (vm, e) => await Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-broadfilesystemaccess")),
                 DynamicButtons = DynamicDialogButtons.Primary
@@ -100,7 +100,7 @@ namespace Files.Helpers
                 },
                 PrimaryButtonAction = (vm, e) =>
                 {
-                    vm.HideDialog(); // Rename successful
+                    vm.HideDialog(); 
                 },
                 PrimaryButtonText = "RenameDialog/PrimaryButtonText".GetLocalized(),
                 CloseButtonText = "RenameDialog/SecondaryButtonText".GetLocalized(),

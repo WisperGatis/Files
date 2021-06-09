@@ -120,10 +120,9 @@ namespace Files.Filesystem
             {
                 await SyncLibrarySideBarItemsUI();
             }
-            catch (Exception) // UI Thread not ready yet, so we defer the pervious operation until it is.
+            catch (Exception) 
             {
                 System.Diagnostics.Debug.WriteLine($"RefreshUI Exception");
-                // Defer because UI-thread is not ready yet (and DriveItem requires it?)
                 CoreApplication.MainView.Activated += EnumerateLibrariesAsync;
             }
         }
@@ -137,7 +136,6 @@ namespace Files.Filesystem
             catch (Exception)
             {
                 System.Diagnostics.Debug.WriteLine($"RefreshUI Exception");
-                // Defer because UI-thread is not ready yet (and DriveItem requires it?)
                 CoreApplication.MainView.Activated += RemoveLibraryItems;
             }
         }
@@ -186,7 +184,6 @@ namespace Files.Filesystem
                 {
                     Libraries.Remove(changedLibrary);
                 }
-                // library is null in case it was deleted
                 if (library != null)
                 {
                     Libraries.AddSorted(new LibraryLocationItem(library));

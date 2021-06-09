@@ -38,7 +38,6 @@ namespace Files.Filesystem.StorageEnumerators
 
                 if (intermediateAction == null)
                 {
-                    // without intermediate action increase batches significantly
                     maxItemsToRetrieve = 1000;
                 }
                 else if (firstRound)
@@ -61,9 +60,8 @@ namespace Files.Filesystem.StorageEnumerators
                 catch (Exception ex) when (
                     ex is UnauthorizedAccessException
                     || ex is FileNotFoundException
-                    || (uint)ex.HResult == 0x80070490) // ERROR_NOT_FOUND
+                    || (uint)ex.HResult == 0x80070490)
                 {
-                    // If some unexpected exception is thrown - enumerate this folder file by file - just to be sure
                     items = await EnumerateFileByFile(rootFolder, count, maxItemsToRetrieve);
                 }
                 foreach (var item in items)
@@ -100,7 +98,6 @@ namespace Files.Filesystem.StorageEnumerators
                 if (intermediateAction != null && (items.Count == maxItemsToRetrieve || sampler.CheckNow()))
                 {
                     await intermediateAction(tempList);
-                    // clear the temporary list every time we do an intermediate action
                     tempList.Clear();
                 }
             }
@@ -129,7 +126,7 @@ namespace Files.Filesystem.StorageEnumerators
                 catch (Exception ex) when (
                     ex is UnauthorizedAccessException
                     || ex is FileNotFoundException
-                    || (uint)ex.HResult == 0x80070490) // ERROR_NOT_FOUND
+                    || (uint)ex.HResult == 0x80070490)
                 {
                     continue;
                 }
@@ -177,7 +174,6 @@ namespace Files.Filesystem.StorageEnumerators
         {
             var basicProperties = await file.GetBasicPropertiesAsync();
             var extraProperties = await basicProperties.RetrievePropertiesAsync(new[] { "System.DateCreated" });
-            // Display name does not include extension
             var itemName = string.IsNullOrEmpty(file.DisplayName) || App.AppSettings.ShowFileExtensions ?
                 file.Name : file.DisplayName;
             var itemModifiedDate = basicProperties.DateModified;
@@ -219,7 +215,6 @@ namespace Files.Filesystem.StorageEnumerators
                 {
                     itemEmptyImgVis = true;
                     itemThumbnailImgVis = false;
-                    // Catch here to avoid crash
                 }
             }
             else
@@ -256,10 +251,8 @@ namespace Files.Filesystem.StorageEnumerators
 
             if (file.Name.EndsWith(".lnk") || file.Name.EndsWith(".url"))
             {
-                // This shouldn't happen, StorageFile api does not support shortcuts
                 Debug.WriteLine("Something strange: StorageFile api returned a shortcut");
             }
-            // TODO: is this needed to be handled here?
             else if (App.LibraryManager.TryGetLibrary(file.Path, out LibraryLocationItem library))
             {
                 return new LibraryItem(library)

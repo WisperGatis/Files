@@ -24,7 +24,7 @@ namespace Files.Filesystem.Permissions
             {
                 accessRules.Remove(rule);
             }
-            if (AllowRights != 0 && !InheritedAllowRights.HasFlag(AllowRights)) // Do not set if permission is already granted by inheritance
+            if (AllowRights != 0 && !InheritedAllowRights.HasFlag(AllowRights)) 
             {
                 accessRules.Add(new FileSystemAccessRule()
                 {
@@ -35,7 +35,7 @@ namespace Files.Filesystem.Permissions
                     PropagationFlags = PropagationFlags.None
                 });
             }
-            if (DenyRights != 0 && !InheritedDenyRights.HasFlag(DenyRights)) // Do not set if permission is already denied by inheritance
+            if (DenyRights != 0 && !InheritedDenyRights.HasFlag(DenyRights))
             {
                 accessRules.Add(new FileSystemAccessRule()
                 {

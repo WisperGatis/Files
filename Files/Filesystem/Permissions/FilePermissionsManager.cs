@@ -30,7 +30,6 @@ namespace Files.Filesystem.Permissions
 
         public ObservableCollection<FileSystemAccessRule> AccessRules { get; set; }
 
-        // Consolidated view 1       
         public ObservableCollection<RulesForUser> RulesForUsers { get; private set; }
 
         public FileSystemRights GetEffectiveRights(UserGroup user)

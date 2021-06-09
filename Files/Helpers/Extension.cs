@@ -11,9 +11,6 @@ using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
 
-/// <summary>
-/// Represents an extension in the ExtensionManager
-/// </summary>
 public class Extension : INotifyPropertyChanged
 {
     #region Member Vars
@@ -28,12 +25,6 @@ public class Extension : INotifyPropertyChanged
 
     #endregion Member Vars
 
-    /// <summary>
-    /// Creates an Extension object that represents an extension in the extension manager
-    /// </summary>
-    /// <param name="ext">The extension as represented by the system</param>
-    /// <param name="properties">Properties about the extension</param>
-    /// <param name="logo">The logo associated with the package that the extension is defined in</param>
     public Extension(AppExtension ext, PropertySet properties, BitmapImage logo)
     {
         AppExtension = ext;
@@ -58,7 +49,7 @@ public class Extension : INotifyPropertyChanged
 
         #endregion Properties
 
-        UniqueId = $"{ext.AppInfo.AppUserModelId}!{ext.Id}"; // The name that identifies this extension in the extension manager
+        UniqueId = $"{ext.AppInfo.AppUserModelId}!{ext.Id}"; 
     }
 
     #region Properties
@@ -96,25 +87,17 @@ public class Extension : INotifyPropertyChanged
 
     #endregion Properties
 
-    /// <summary>
-    /// Invoke the extension's app service
-    /// </summary>
-    /// <param name="message">The parameters for the app service call</param>
     public async Task<ValueSet> Invoke(ValueSet message)
     {
         if (Loaded)
         {
             try
             {
-                // make the app service call
                 using (var connection = new AppServiceConnection())
                 {
-                    // service name is defined in appxmanifest properties
                     connection.AppServiceName = serviceName;
-                    // package Family Name is provided by the extension
                     connection.PackageFamilyName = AppExtension.Package.Id.FamilyName;
 
-                    // open the app service connection
                     AppServiceConnectionStatus status = await connection.OpenAsync();
                     if (status != AppServiceConnectionStatus.Success)
                     {
@@ -122,7 +105,6 @@ public class Extension : INotifyPropertyChanged
                     }
                     else
                     {
-                        // Call the app service
                         AppServiceResponse response = await connection.SendMessageAsync(message);
                         if (response.Status == AppServiceResponseStatus.Success)
                         {
@@ -136,17 +118,11 @@ public class Extension : INotifyPropertyChanged
                 Debug.WriteLine("Calling the App Service failed");
             }
         }
-        return new ValueSet(); // indicates an error from the app service
+        return new ValueSet(); 
     }
 
-    /// <summary>
-    /// Called when an extension that has already been loaded is updated
-    /// </summary>
-    /// <param name="ext">The updated extension as represented by the system</param>
-    /// <returns></returns>
     public async Task Update(AppExtension ext)
     {
-        // ensure this is the same uid
         string identifier = ext.AppInfo.AppUserModelId + "!" + ext.Id;
         if (identifier != this.UniqueId)
         {
@@ -155,12 +131,10 @@ public class Extension : INotifyPropertyChanged
 
         var properties = await ext.GetExtensionPropertiesAsync() as PropertySet;
 
-        // get the logo for the extension
         var filestream = await (ext.AppInfo.DisplayInfo.GetLogo(new Windows.Foundation.Size(1, 1))).OpenReadAsync();
         BitmapImage logo = new BitmapImage();
         logo.SetSource(filestream);
 
-        // update the extension
         this.AppExtension = ext;
         this.properties = properties;
         Logo = logo;
@@ -183,13 +157,8 @@ public class Extension : INotifyPropertyChanged
         await MarkAsLoaded();
     }
 
-    /// <summary>
-    /// Prepares the extension so that the ExtensionManager can present it as an available extension
-    /// </summary>
-    /// <returns></returns>
     public async Task MarkAsLoaded()
     {
-        // make sure package is OK to load
         if (!AppExtension.Package.Status.VerifyIsOK())
         {
             return;
@@ -197,14 +166,11 @@ public class Extension : INotifyPropertyChanged
 
         Enabled = true;
 
-        // Don't reload
         if (Loaded)
         {
             return;
         }
 
-        // The public folder is shared between the extension and the host.
-        // We don't use it in this sample but you can see https://github.com/Microsoft/Build2016-B808-AppExtensibilitySample for an example of it can be used.
         StorageFolder folder = await AppExtension.GetPublicFolderAsync();
         PublicFolderPath = folder.Path;
         try
@@ -224,27 +190,18 @@ public class Extension : INotifyPropertyChanged
         Offline = false;
     }
 
-    /// <summary>
-    /// Enable the extension for use
-    /// </summary>
-    /// <returns></returns>
     public async Task Enable()
     {
         Enabled = true;
         await MarkAsLoaded();
     }
 
-    /// <summary>
-    /// Indicates to the extension manager that the extension is unloaded
-    /// </summary>
     public void Unload()
     {
-        // unload it
-        lock (sync) // Calls to this functioned are queued on an await call so lock to handle one at a time
+        lock (sync) 
         {
             if (Loaded)
             {
-                // see if the package is offline
                 if (!AppExtension.Package.Status.VerifyIsOK() && !AppExtension.Package.Status.PackageOffline)
                 {
                     Offline = true;
@@ -257,10 +214,8 @@ public class Extension : INotifyPropertyChanged
         }
     }
 
-    // user-facing action to disable the extension
     public void Disable()
     {
-        // only disable if it is enabled so that we don't Unload() more than once
         if (Enabled)
         {
             Enabled = false;

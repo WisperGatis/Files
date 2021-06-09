@@ -37,21 +37,16 @@ namespace FilesFullTrust
 
             if (HandleCommandLineArgs())
             {
-                // Handles OpenShellCommandInExplorer
                 return;
             }
 
             try
             {
-                // Create handle table to store e.g. context menu references
                 handleTable = new Win32API.DisposableDictionary();
 
-                // Create shell COM object and get recycle bin folder
                 using var recycler = new ShellFolder(Shell32.KNOWNFOLDERID.FOLDERID_RecycleBinFolder);
                 ApplicationData.Current.LocalSettings.Values["RecycleBin_Title"] = recycler.Name;
 
-                // Create filesystem watcher to monitor recycle bin folder(s)
-                // SHChangeNotifyRegister only works if recycle bin is open in explorer :(
                 binWatchers = new List<FileSystemWatcher>();
                 var sid = WindowsIdentity.GetCurrent().User.ToString();
                 foreach (var drive in DriveInfo.GetDrives())
@@ -87,23 +82,17 @@ namespace FilesFullTrust
                 librariesWatcher.Renamed += (object _, RenamedEventArgs e) => OnLibraryChanged(e.ChangeType, e.OldFullPath, e.FullPath);
                 librariesWatcher.EnableRaisingEvents = true;
 
-                // Create cancellation token for drop window
                 cancellation = new CancellationTokenSource();
 
-                // Connect to app service and wait until the connection gets closed
                 appServiceExit = new ManualResetEvent(false);
                 InitializeAppServiceConnection();
 
-                // Preload context menu for better performance
-                // We query the context menu for the app's local folder
                 var preloadPath = ApplicationData.Current.LocalFolder.Path;
                 using var _ = Win32API.ContextMenu.GetContextMenuForFiles(new string[] { preloadPath }, Shell32.CMF.CMF_NORMAL | Shell32.CMF.CMF_SYNCCASCADEMENU, FilterMenuItems(false));
 
-                // Initialize device watcher
                 deviceWatcher = new DeviceWatcher(connection);
                 deviceWatcher.Start();
 
-                // Wait until the connection gets closed
                 appServiceExit.WaitOne();
             }
             finally
@@ -133,7 +122,6 @@ namespace FilesFullTrust
             Debug.WriteLine($"Recycle bin event: {e.ChangeType}, {e.FullPath}");
             if (e.Name.StartsWith("$I"))
             {
-                // Recycle bin also stores a file starting with $I for each item
                 return;
             }
             if (connection?.IsConnected ?? false)
@@ -150,7 +138,6 @@ namespace FilesFullTrust
                     var shellFileItem = GetShellFileItem(folderItem);
                     response["Item"] = JsonConvert.SerializeObject(shellFileItem);
                 }
-                // Send message to UWP app to refresh items
                 await Win32API.SendMessageAsync(connection, response);
             }
         }
@@ -176,7 +163,7 @@ namespace FilesFullTrust
             if (IsAdministrator())
             {
                 PipeAccessRule EveryoneRule = new PipeAccessRule(new SecurityIdentifier("S-1-1-0"), PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
-                Security.AddAccessRule(EveryoneRule); // TODO: find the minimum permission to allow connection when admin
+                Security.AddAccessRule(EveryoneRule); 
             }
             connection.SetAccessControl(Security);
 
@@ -228,7 +215,6 @@ namespace FilesFullTrust
             var readBytes = connection.EndRead(result);
             if (readBytes > 0)
             {
-                // Get the read bytes and append them
                 info.Message.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
 
                 if (connection.IsMessageComplete) // Message is completed
@@ -237,7 +223,6 @@ namespace FilesFullTrust
 
                     Connection_RequestReceived(connection, JsonConvert.DeserializeObject<Dictionary<string, object>>(message));
 
-                    // Begin a new reading operation
                     var nextInfo = (Buffer: new byte[connection.InBufferSize], Message: new StringBuilder());
                     BeginRead(nextInfo);
 
@@ -249,8 +234,6 @@ namespace FilesFullTrust
 
         private static async void Connection_RequestReceived(NamedPipeServerStream conn, Dictionary<string, object> message)
         {
-            // Get a deferral because we use an awaitable API below to respond to the message
-            // and we don't want this call to get cancelled while we are waiting.
             if (message == null)
             {
                 return;
@@ -258,9 +241,6 @@ namespace FilesFullTrust
 
             if (message.ContainsKey("Arguments"))
             {
-                // This replaces launching the fulltrust process with arguments
-                // Instead a single instance of the process is running
-                // Requests from UWP app are sent via AppService connection
                 var arguments = (string)message["Arguments"];
                 var localSettings = ApplicationData.Current.LocalSettings;
                 Logger.Info($"Argument: {arguments}");
@@ -291,12 +271,12 @@ namespace FilesFullTrust
             switch (arguments)
             {
                 case "Terminate":
-                    // Exit fulltrust process (UWP is closed or suspended)
+
                     appServiceExit.Set();
                     break;
 
                 case "Elevate":
-                    // Relaunch fulltrust process as admin
+
                     if (!IsAdministrator())
                     {
                         try
@@ -314,7 +294,6 @@ namespace FilesFullTrust
                         }
                         catch (Win32Exception)
                         {
-                            // If user cancels UAC
                             await Win32API.SendMessageAsync(connection, new ValueSet() { { "Success", 1 } }, message.Get("RequestID", (string)null));
                         }
                     }
@@ -357,11 +336,6 @@ namespace FilesFullTrust
                     {
                         await execThreadWithMessageQueue.PostMessage(message);
                     }
-                    // The following line is needed to cleanup resources when menu is closed.
-                    // Unfortunately if you uncomment it some menu items will randomly stop working.
-                    // Resource cleanup is currently done on app closing,
-                    // if we find a solution for the issue above, we should cleanup as soon as a menu is closed.
-                    //handleTable.RemoveValue(menuKey);
                     break;
 
                 case "InvokeVerb":
@@ -513,7 +487,7 @@ namespace FilesFullTrust
                     break;
 
                 case "ShellFolder":
-                    // Enumerate shell folder contents and send response to UWP
+
                     var folderPath = (string)message["folder"];
                     var responseEnum = new ValueSet();
                     var folderContentsList = await Win32API.StartSTATask(() =>
@@ -621,7 +595,7 @@ namespace FilesFullTrust
             switch ((string)message["action"])
             {
                 case "Enumerate":
-                    // Read library information and send response to UWP
+
                     var enumerateResponse = await Win32API.StartSTATask(() =>
                     {
                         var response = new ValueSet();
@@ -650,7 +624,7 @@ namespace FilesFullTrust
                     break;
 
                 case "Create":
-                    // Try create new library with the specified name and send response to UWP
+
                     var createResponse = await Win32API.StartSTATask(() =>
                     {
                         var response = new ValueSet();
@@ -669,7 +643,7 @@ namespace FilesFullTrust
                     break;
 
                 case "Update":
-                    // Update details of the specified library and send response to UWP
+
                     var updateResponse = await Win32API.StartSTATask(() =>
                     {
                         var response = new ValueSet();
@@ -801,11 +775,6 @@ namespace FilesFullTrust
                                 break;
                         }
                     }
-                    // The following line is needed to cleanup resources when menu is closed.
-                    // Unfortunately if you uncomment it some menu items will randomly stop working.
-                    // Resource cleanup is currently done on app closing,
-                    // if we find a solution for the issue above, we should cleanup as soon as a menu is closed.
-                    //table.RemoveValue("MENU");
                     return null;
 
                 default:
@@ -822,8 +791,8 @@ namespace FilesFullTrust
                 "cut", "copy", "paste", "delete", "properties", "link",
                 "Windows.ModernShare", "Windows.Share", "setdesktopwallpaper",
                 "eject", "rename", "explore", "openinfiles",
-                Win32API.ExtractStringFromDLL("shell32.dll", 30312), // SendTo menu
-                Win32API.ExtractStringFromDLL("shell32.dll", 34593), // Add to collection
+                Win32API.ExtractStringFromDLL("shell32.dll", 30312), 
+                Win32API.ExtractStringFromDLL("shell32.dll", 34593), 
             };
 
             bool filterMenuItemsImpl(string menuItem)
@@ -1076,7 +1045,6 @@ namespace FilesFullTrust
             switch (action)
             {
                 case "Empty":
-                    // Shell function to empty recyclebin
                     Shell32.SHEmptyRecycleBin(IntPtr.Zero, null, Shell32.SHERB.SHERB_NOCONFIRMATION | Shell32.SHERB.SHERB_NOPROGRESSUI);
                     break;
 

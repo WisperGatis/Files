@@ -481,14 +481,12 @@ namespace Files.Filesystem
                 }
                 else if (operation.HasFlag(DataPackageOperation.Link))
                 {
-                    // Open with piggybacks off of the link operation, since there isn't one for it
                     if (isTargetExecutable)
                     {
                         var items = await packageView.GetStorageItemsAsync();
                         NavigationHelpers.OpenItemsWithExecutable(associatedInstance, items.ToList(), destination);
                     }
 
-                    // TODO: Support link creation
                     return default;
                 }
                 else if (operation.HasFlag(DataPackageOperation.None))
@@ -712,15 +710,12 @@ namespace Files.Filesystem
                     var imgSource = await packageView.GetBitmapAsync();
                     using var imageStream = await imgSource.OpenReadAsync();
                     var folder = await StorageFolder.GetFolderFromPathAsync(destination);
-                    // Set the name of the file to be the current time and date
                     var file = await folder.CreateFileAsync($"{DateTime.Now:mm-dd-yy-HHmmss}.png", CreationCollisionOption.GenerateUniqueName);
 
                     SoftwareBitmap softwareBitmap;
 
-                    // Create the decoder from the stream
                     BitmapDecoder decoder = await BitmapDecoder.CreateAsync(imageStream);
 
-                    // Get the SoftwareBitmap representation of the file
                     softwareBitmap = await decoder.GetSoftwareBitmapAsync();
 
                     await Helpers.SaveImageToFile.SaveSoftwareBitmapToFile(softwareBitmap, file, BitmapEncoder.PngEncoderId);
@@ -732,8 +727,6 @@ namespace Files.Filesystem
                 }
             }
 
-            // Happens if you copy some text and then you Ctrl+V in Files
-            // Should this be done in ModernShellPage?
             return ReturnResult.BadArgumentException;
         }
 
@@ -917,8 +910,6 @@ namespace Files.Filesystem
         {
             if (!packageView.Contains(StandardDataFormats.StorageItems))
             {
-                // Happens if you copy some text and then you Ctrl+V in Files
-                // Should this be done in ModernShellPage?
                 return ReturnResult.BadArgumentException;
             }
 
@@ -1036,7 +1027,7 @@ namespace Files.Filesystem
                 incomingItems.Add(new FilesystemItemsOperationItemModel(operationType, source.ElementAt(i).Path ?? source.ElementAt(i).Item.Path, destination.ElementAt(i)));
                 collisions.Add(incomingItems.ElementAt(i).SourcePath, FileNameConflictResolveOptionType.GenerateNewName);
 
-                if (destination.Count() > 0 && StorageItemHelpers.Exists(destination.ElementAt(i))) // Same item names in both directories
+                if (destination.Count() > 0 && StorageItemHelpers.Exists(destination.ElementAt(i))) 
                 {
                     conflictingItems.Add(incomingItems.ElementAt(i));
                 }
@@ -1056,9 +1047,9 @@ namespace Files.Filesystem
 
                 ContentDialogResult result = await dialog.ShowAsync();
 
-                if (mustResolveConflicts) // If there were conflicts, result buttons are different
+                if (mustResolveConflicts)
                 {
-                    if (result != ContentDialogResult.Primary) // Operation was cancelled
+                    if (result != ContentDialogResult.Primary) 
                     {
                         return (new List<FileNameConflictResolveOptionType>(), true);
                     }
@@ -1072,7 +1063,6 @@ namespace Files.Filesystem
                 }
             }
 
-            // Since collisions are scrambled, we need to sort them PATH--PATH
             List<FileNameConflictResolveOptionType> newCollisions = new List<FileNameConflictResolveOptionType>();
 
             for (int i = 0; i < collisions.Count; i++)
@@ -1112,8 +1102,6 @@ namespace Files.Filesystem
         {
             if (string.IsNullOrEmpty(path))
             {
-                // In MTP devices calculating folder size would be too slow
-                // Also should use StorageFolder methods instead of FindFirstFileExFromApp
                 return 0;
             }
 
@@ -1163,8 +1151,6 @@ namespace Files.Filesystem
         {
             if (string.IsNullOrEmpty(path))
             {
-                // In MTP devices calculating folder size would be too slow
-                // Also should use StorageFolder methods instead of FindFirstFileExFromApp
                 return 0;
             }
 
@@ -1190,10 +1176,9 @@ namespace Files.Filesystem
                 return 0;
             }
         }
-
         public static bool ContainsRestrictedCharacters(string input)
         {
-            Regex regex = new Regex("\\\\|\\/|\\:|\\*|\\?|\\\"|\\<|\\>|\\|"); // Restricted symbols for file names
+            Regex regex = new Regex("\\\\|\\/|\\:|\\*|\\?|\\\"|\\<|\\>|\\|"); 
             MatchCollection matches = regex.Matches(input);
 
             if (matches.Count > 0)
