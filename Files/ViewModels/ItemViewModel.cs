@@ -46,10 +46,8 @@ namespace Files.ViewModels
         private IntPtr hWatchDir;
         private IAsyncAction aWatcherAction;
 
-        // files and folders list for manipulating
         private List<ListedItem> filesAndFolders;
 
-        // only used for Binding and ApplyFilesAndFoldersChangesAsync, don't manipulate on this!
         public BulkConcurrentObservableCollection<ListedItem> FilesAndFolders { get; }
 
         private SettingsViewModel AppSettings => App.AppSettings;
@@ -336,7 +334,6 @@ namespace Files.ViewModels
 
         private async void Connection_RequestReceived(object sender, Dictionary<string, object> message)
         {
-            // The fulltrust process signaled that something in the recycle bin folder has changed
             if (message.ContainsKey("FileSystem"))
             {
                 var folderPath = (string)message["FileSystem"];
@@ -344,7 +341,6 @@ namespace Files.ViewModels
                 var changeType = (string)message["Type"];
                 var newItem = JsonConvert.DeserializeObject<ShellFileItem>(message.Get("Item", ""));
                 Debug.WriteLine("{0}: {1}", folderPath, changeType);
-                // If we are currently displaying the reycle bin lets refresh the items
                 if (CurrentFolder?.ItemPath == folderPath)
                 {
                     switch (changeType)
@@ -376,7 +372,6 @@ namespace Files.ViewModels
                     }
                 }
             }
-            // The fulltrust process signaled that a drive has been connected/disconnected
             else if (message.ContainsKey("DeviceID"))
             {
                 var deviceId = (string)message["DeviceID"];
@@ -388,7 +383,6 @@ namespace Files.ViewModels
                 await App.LibraryManager.HandleWin32LibraryEvent(JsonConvert.DeserializeObject<ShellLibraryItem>(message.Get("Item", "")), message.Get("OldPath", ""));
             }
         }
-
         public void CancelLoadAndClearFiles()
         {
             Debug.WriteLine("CancelLoadAndClearFiles");
@@ -421,8 +415,6 @@ namespace Files.ViewModels
                 DirectoryInfoUpdated?.Invoke(this, EventArgs.Empty);
             });
         }
-
-        // apply changes immediately after manipulating on filesAndFolders completed
         public async Task ApplyFilesAndFoldersChangesAsync()
         {
             try
@@ -446,17 +438,8 @@ namespace Files.ViewModels
                     return;
                 }
 
-                // CollectionChanged will cause UI update, which may cause significant performance degradation,
-                // so suppress CollectionChanged event here while loading items heavily.
-
-                // Note that both DataGrid and GridView don't support multi-items changes notification, so here
-                // we have to call BeginBulkOperation to suppress CollectionChanged and call EndBulkOperation
-                // in the end to fire a CollectionChanged event with NotifyCollectionChangedAction.Reset
                 FilesAndFolders.BeginBulkOperation();
 
-                // After calling BeginBulkOperation, ObservableCollection.CollectionChanged is suppressed
-                // so modifies to FilesAndFolders won't trigger UI updates, hence below operations can be
-                // run safely without needs of dispatching to UI thread
                 Action applyChangesAction = () =>
                 {
                     var startIndex = -1;
@@ -516,8 +499,6 @@ namespace Files.ViewModels
 
                 Action updateUIAction = () =>
                 {
-                    // trigger CollectionChanged with NotifyCollectionChangedAction.Reset
-                    // once loading is completed so that UI can be updated
                     FilesAndFolders.EndBulkOperation();
                     IsFolderEmptyTextDisplayed = FilesAndFolders.Count == 0;
                     DirectoryInfoUpdated?.Invoke(this, EventArgs.Empty);
@@ -542,7 +523,6 @@ namespace Files.ViewModels
 
         private Task OrderFilesAndFoldersAsync()
         {
-            // Sorting group contents is handled elsewhere
             if (folderSettings.DirectoryGroupOption != GroupOption.None)
             {
                 return Task.CompletedTask;
@@ -596,7 +576,6 @@ namespace Files.ViewModels
         {
             try
             {
-                // Conflicts will occur if re-grouping is run while items are still being enumerated, so wait for enumeration to complete first
                 await enumFolderSemaphore.WaitAsync(token);
             }
             catch (OperationCanceledException)
@@ -705,8 +684,6 @@ namespace Files.ViewModels
             }
         }
 
-        // This works for recycle bin as well as GetFileFromPathAsync/GetFolderFromPathAsync work
-        // for file inside the recycle bin (but not on the recycle bin folder itself)
         public async Task LoadExtendedItemProperties(ListedItem item, uint thumbnailSize = 20)
         {
             await Task.Run(async () =>
@@ -761,7 +738,7 @@ namespace Files.ViewModels
                             matchingStorageFile = await GetFileFromPathAsync(item.ItemPath);
                             if (matchingStorageFile != null)
                             {
-                                if (fileIconInfo.IconData == null) // Loading icon from fulltrust process failed
+                                if (fileIconInfo.IconData == null)
                                 {
                                     using var Thumbnail = await matchingStorageFile.GetThumbnailAsync(ThumbnailMode.SingleItem, thumbnailSize, ThumbnailOptions.UseCurrentScale);
                                     if (Thumbnail != null)
@@ -935,10 +912,6 @@ namespace Files.ViewModels
 
             try
             {
-                // Only one instance at a time should access this function
-                // Wait here until the previous one has ended
-                // If we're waiting and a new update request comes through
-                // simply drop this instance
                 await enumFolderSemaphore.WaitAsync(semaphoreCTS.Token);
             }
             catch (OperationCanceledException)
@@ -1001,18 +974,16 @@ namespace Files.ViewModels
                 path.StartsWith(AppSettings.NetworkFolderPath) ||
                 path.StartsWith("ftp:"))
             {
-                // Recycle bin and network are enumerated by the fulltrust process
                 PageTypeUpdated?.Invoke(this, new PageTypeUpdatedEventArgs() { IsTypeCloudDrive = false, IsTypeRecycleBin = isRecycleBin });
                 await EnumerateItemsFromSpecialFolderAsync(path);
             }
             else
             {
                 var enumerated = await EnumerateItemsFromStandardFolderAsync(path, folderSettings.GetLayoutType(path, false), addFilesCTS.Token, library);
-                IsLoadingItems = false; // Hide progressbar after enumeration
+                IsLoadingItems = false;
                 switch (enumerated)
                 {
-                    case 0: // Enumerated with FindFirstFileExFromApp
-                        // Is folder synced to cloud storage?
+                    case 0:
                         currentStorageFolder ??= await FilesystemTasks.Wrap(() => StorageFileExtensions.DangerousGetFolderWithPathFromPathAsync(path));
                         var syncStatus = await CheckCloudDriveSyncStatusAsync(currentStorageFolder?.Item);
                         PageTypeUpdated?.Invoke(this, new PageTypeUpdatedEventArgs() { IsTypeCloudDrive = syncStatus != CloudDriveSyncStatus.NotSynced && syncStatus != CloudDriveSyncStatus.Unknown });

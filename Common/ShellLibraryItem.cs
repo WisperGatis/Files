@@ -43,5 +43,10 @@
         public ShellLibraryItem()
         {
         }
+
+        public void Dispose()
+        {
+            throw new global::System.NotImplementedException();
+        }
     }
 }

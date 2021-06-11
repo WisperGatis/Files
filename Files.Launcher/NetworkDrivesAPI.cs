@@ -16,6 +16,7 @@ namespace FilesFullTrust
         /// </summary>
         public class NetworkConnectionDialog : CommonDialog
         {
+            private const uint V = unchecked((uint)-1);
             private NETRESOURCE nres = new NETRESOURCE();
             private CONNECTDLGSTRUCT opts;
 
@@ -59,6 +60,12 @@ namespace FilesFullTrust
             /// </summary>
             /// <value><c>true</c> to display a read only path; otherwise, <c>false</c>.</value>
             [DefaultValue(false), Category("Appearance"), Description("Display a read-only path instead of allowing the user to type in a path.")]
+            public NetworkConnectionDialog(bool readOnlyPath, object cONN_DLG)
+            {
+                this.ReadOnlyPath = readOnlyPath;
+                this.CONN_DLG = cONN_DLG;
+
+            }
             public bool ReadOnlyPath { get; set; }
 
             /// <summary>Gets or sets the name of the remote network.</summary>
@@ -81,6 +88,8 @@ namespace FilesFullTrust
                 }
             }
 
+            public object CONN_DLG { get; private set; }
+
             /// <inheritdoc/>
             public override void Reset()
             {
@@ -101,10 +110,15 @@ namespace FilesFullTrust
                         opts.dwFlags |= CONN_DLG.CONNDLG_RO_PATH;
                     var ret = WNetConnectionDialog1(opts);
                     opts.lpConnRes = IntPtr.Zero;
-                    if (ret == unchecked((uint)-1)) return false;
-                    ret.ThrowIfFailed();
+                    if (ret == V) return false;
+                    object p = ret.ThrowIfFailed();
                     return true;
                 }
+            }
+
+            private object WNetConnectionDialog1(CONNECTDLGSTRUCT opts)
+            {
+                throw new NotImplementedException();
             }
         }
 
