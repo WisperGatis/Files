@@ -1,4 +1,14 @@
-using System.Collections.Specialized;
+namespace System.Windows
+{
+    internal class Forms
+    {
+    }
+}namespace System.Windows
+{
+    internal class Forms
+    {
+    }
+}using System.Collections.Specialized;
 
 namespace System.Windows
 {

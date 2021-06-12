@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace FilesFullTrust
 {
@@ -23,6 +24,8 @@ namespace FilesFullTrust
         public static object ApplicationData { get; internal set; }
         public static object Shell32 { get; internal set; }
 
+        private const string V = "OpenMapNetworkDriveDialog";
+        private const string V1 = "DisconnectNetworkDrive";
         private static readonly LogWriter logWriter = new LogWriter();
 
         [STAThread]
@@ -44,15 +47,16 @@ namespace FilesFullTrust
 
             handleTable = new Win32API.DisposableDictionary();
 
-            using var recycler = new ShellFolder(Shell32.KNOWNFOLDERID.FOLDERID_RecycleBinFolder);
+            ShellFolder shellFolder = new ShellFolder(Shell32.KNOWNFOLDERID.FOLDERID_RecycleBinFolder);
+            using var recycler = shellFolder;
             ApplicationData.Current.LocalSettings.Values["RecycleBin_Title"] = recycler.Name;
 
-            binWatchers = new List<FileSystemWatcher>();
+            binWatchers = new System.Collections.Generic.List<FileSystemWatcher>();
             var sid = WindowsIdentity.GetCurrent().User.ToString();
-            foreach (var drive in DriveInfo.GetDrives())
+            foreach (var item in DriveInfo.GetDrives())
             {
-                var recyclePath = Path.Combine(drive.Name, "$RECYCLE.BIN", sid);
-                if (drive.DriveType == DriveType.Network || !Directory.Exists(recyclePath))
+                var recyclePath = Path.Combine(item.Name, "$RECYCLE.BIN", sid);
+                if (item.DriveType == DriveType.Network || !Directory.Exists(recyclePath))
                 {
                     continue;
                 }
@@ -210,29 +214,21 @@ namespace FilesFullTrust
 
         private static async void Connection_RequestReceived(NamedPipeServerStream conn, Dictionary<string, object> message)
         {
+            if (conn is null)
+            {
+                throw new ArgumentNullException(nameof(conn));
+            }
+
             if (message == default(object))
             {
                 return;
             }
 
-            if (message.ContainsKey("Arguments"))
-            {
-                var arguments = (string)message["Arguments"];
-                var localSettings = ApplicationData.Current.LocalSettings;
-                Logger.Info($"Argument: {arguments}");
+            var arguments = (string)message["Arguments"];
+            var localSettings = ApplicationData.Current.LocalSettings;
+            Logger.Info($"Argument: {arguments}");
 
-                await ParseArgumentsAsync(message, arguments, localSettings);
-            }
-            else if (message.ContainsKey("Application"))
-            {
-                var application = (string)message["Application"];
-                HandleApplicationLaunch(application, message);
-            }
-            else if (message.ContainsKey("ApplicationList"))
-            {
-                var applicationList = JsonConvert.DeserializeObject<IEnumerable<string>>((string)message["ApplicationList"]);
-                HandleApplicationsLaunch(applicationList, message);
-            }
+            await ParseArgumentsAsync(message, arguments, localSettings).ConfigureAwait(false);
         }
 
         private static bool IsAdministrator()
@@ -268,28 +264,28 @@ namespace FilesFullTrust
                             object p = await Win32API.SendMessageAsync(
                                 connection,
                                 new ValueSet() { { $"Su{}ccess", 0 } },
-                                message.GetType("RequestID", (string)null)).ConfigureAwait(false);
+                                message.GetType($"{}RequestID", (string)null)).ConfigureAwait(false);
                             appServiceExit.Set();
                         }
                         catch (Win32Exception)
                         {
-                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"Succes{}s", 1 } }, message.GetType("RequestID", (string)null)).ConfigureAwait(false);
+                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"Succes{}s", 1 } }, message.GetType($"{}RequestID", (string)null)).ConfigureAwait(false);
                         }
                     }
                     else
                     {
-                        object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"Su{}ccess", -1 } }, message.GetType("RequestID", (string)null));
+                        object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"Su{}ccess", -1 } }, message.GetType($"{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     break;
 
                 case "RecycleBin":
                     var binAction = (string)message["action"];
-                    await ParseRecycleBinActionAsync(message, binAction);
+                    await ParseRecycleBinActionAsync(message, binAction).ConfigureAwait(false);
                     break;
 
                 case "DetectQuickLook":
                     var available = QuickLook.CheckQuickLookAvailability();
-                    await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}IsAvailable", available } }, message.GetHashCode("RequestID", (string)null));
+                    await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}IsAvailable", available } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "ToggleQuickLook":
@@ -300,11 +296,11 @@ namespace FilesFullTrust
                 case "LoadContextMenu":
                     var contextMenuResponse = new ValueSet();
                     var loadThreadWithMessageQueue = new Win32API.ThreadWithMessageQueue<Dictionary<string, object>>(HandleMenuMessage);
-                    var cMenuLoad = await loadThreadWithMessageQueue.PostMessageAsync<Win32API.ContextMenu>(message);
+                    var cMenuLoad = await loadThreadWithMessageQueue.PostMessageAsync<Win32API.ContextMenu>(message).ConfigureAwait(false);
                     contextMenuResponse.Add("Handle", handleTable.AddValue(loadThreadWithMessageQueue));
                     contextMenuResponse.Add("ContextMenu", JsonConvert.SerializeObject(cMenuLoad));
                     var serializedCm = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(contextMenuResponse));
-                    await Win32API.SendMessageAsync(connection, contextMenuResponse, message.GetHashCode("RequestID", (string)null));
+                    await Win32API.SendMessageAsync(connection, contextMenuResponse, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "ExecAndCloseContextMenu":
@@ -312,7 +308,7 @@ namespace FilesFullTrust
                     var execThreadWithMessageQueue = handleTable.GetValue<Win32API.ThreadWithMessageQueue<Dictionary<string, object>>>(menuKey);
                     if (execThreadWithMessageQueue != null)
                     {
-                        await execThreadWithMessageQueue.PostMessage(message);
+                        await execThreadWithMessageQueue.PostMessage(message).ConfigureAwait(false);
                     }
                     break;
 
@@ -334,7 +330,7 @@ namespace FilesFullTrust
                         var password = (string)message["password"];
                         Win32API.UnlockBitlockerDrive(drive, password);
                         object p = await Win32API.SendMessageAsync(
-                            connection, new ValueSet() { { $"{}Bitlocker", "Unlock" } }, message.GetHashCode("RequestID", (string)null));
+                            connection, new ValueSet() { { $"{}Bitlocker", "Unlock" } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     break;
 
@@ -342,11 +338,11 @@ namespace FilesFullTrust
                     var driveName = (string)message["drivename"];
                     var newLabel = (string)message["newlabel"];
                     Win32API.SetVolumeLabel(driveName, newLabel);
-                    await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}SetVolumeLabel", driveName } }, message.GetHashCode("RequestID", (string)null));
+                    await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}SetVolumeLabel", driveName } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "FileOperation":
-                    await ParseFileOperationAsync(message);
+                    await ParseFileOperationAsync(message).ConfigureAwait(false);
                     break;
 
                 case "GetIconOverlay":
@@ -358,21 +354,21 @@ namespace FilesFullTrust
                         { $"{}Icon", iconOverlay.icon },
                         { "Overlay", iconOverlay.overlay },
                         { "HasCustomIcon", iconOverlay.isCustom }
-                    }, message.GetHashCode("RequestID", (string)null));
+                    }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "GetIconWithoutOverlay":
                     var fileIconPath2 = (string)message["filePath"];
                     var thumbnailSize2 = (int)(long)message["thumbnailSize"];
-                    var icon2 = Win32API.StartSTATask(() => Win32API.GetFileIconAndOverlay(fileIconPath2, thumbnailSize2, false)).Result;
+                    var (icon, overlay, isCustom) = Win32API.StartSTATask(() => Win32API.GetFileIconAndOverlay(fileIconPath2, thumbnailSize2, false)).Result;
                     await Win32API.SendMessageAsync(connection, new ValueSet()
                     {
-                        { $"{}Icon", icon2.icon },
-                    }, message.GetHashCode("RequestID", (string)null));
+                        { $"{}Icon", icon },
+                    }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "NetworkDriveOperation":
-                    await ParseNetworkDriveOperationAsync(message);
+                    await ParseNetworkDriveOperationAsync(message).ConfigureAwait(false);
                     break;
 
                 case "GetOneDriveAccounts":
@@ -382,7 +378,7 @@ namespace FilesFullTrust
 
                         if (oneDriveAccountsKey == null)
                         {
-                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode("RequestID", (string)null));
+                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                             return;
                         }
 
@@ -403,7 +399,7 @@ namespace FilesFullTrust
                     }
                     catch
                     {
-                        await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode($"{}RequestID", (string)null));
+                        await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     break;
 
@@ -414,7 +410,7 @@ namespace FilesFullTrust
 
                         if (oneDriveAccountsKey == null)
                         {
-                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode("{}RequestID", (string)null));
+                            object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.GetHashCode("{}RequestID", (string)null)).ConfigureAwait(false);
                             return;
                         }
 
@@ -467,7 +463,7 @@ namespace FilesFullTrust
                     }
                     catch
                     {
-                        await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.TryGetValue("{}RequestID", (string)null));
+                        await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Count", 0 } }, message.TryGetValue("{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     break;
 
@@ -498,7 +494,7 @@ namespace FilesFullTrust
                         return flc;
                     }).ConfigureAwait(false);
                     responseEnum.Add($"{}Enumerate", JsonConvert.SerializeObject(folderContentsList));
-                    await Win32API.SendMessageAsync(connection, responseEnum, message.GetHashCode($"{}RequestID", (string)null));
+                    await Win32API.SendMessageAsync(connection, responseEnum, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 case "ShellLibrary":
@@ -510,7 +506,7 @@ namespace FilesFullTrust
                     await Win32API.SendMessageAsync(connection, new ValueSet()
                     {
                         { $"{}IconInfos", JsonConvert.SerializeObject(selectedIconInfos) },
-                    }, message.GetHashCode($"{{}}RequestID", (string)null));
+                    }, message.GetHashCode($"{{{}}}RequestID", (string)null)).ConfigureAwait(false);
                     break;
 
                 default:
@@ -539,28 +535,25 @@ namespace FilesFullTrust
 
             Debug.WriteLine($"Library event: {changeType}, {oldPath} -> {newPath}");
 
-            if (connection?.IsConnected ?? false)
+            var response = new ValueSet { { $"{{}}{}Library", newPath ?? oldPath } };
+            switch (changeType)
             {
-                var response = new ValueSet { { $"{{}}{}Library", newPath ?? oldPath } };
-                switch (changeType)
-                {
-                    case WatcherChangeTypes.Deleted:
-                    case WatcherChangeTypes.Renamed:
-                        response[$"{}OldPath"] = oldPath;
-                        break;
+                case WatcherChangeTypes.Deleted:
+                case WatcherChangeTypes.Renamed:
+                    response[$"{}OldPath"] = oldPath;
+                    break;
 
-                    default:
-                        break;
-                }
-                if (!(ShellItem.Open(newPath) is ShellLibraryItem library))
-                {
-                    Logger.Error($"Failed to open library after {changeType}: {newPath}");
-                    return;
-                }
-                response[$"{}Item"] = JsonConvert.SerializeObject(GetShellLibraryItem(library, newPath));
-                library.Dispose();
-                await Win32API.SendMessageAsync(connection, response).ConfigureAwait(false);
+                default:
+                    break;
             }
+            if (!(ShellItem.Open(newPath) is ShellLibraryItem library))
+            {
+                Logger.Error($"Failed to open library after {changeType}: {newPath}");
+                return;
+            }
+            response[$"{}Item"] = JsonConvert.SerializeObject(GetShellLibraryItem(library, newPath));
+            library.Dispose();
+            await Win32API.SendMessageAsync(connection, response).ConfigureAwait(false);
         }
 
         private static async Task HandleShellLibraryMessage(Dictionary<string, object> message)
@@ -593,7 +586,7 @@ namespace FilesFullTrust
                         }
                         return response;
                     }).ConfigureAwait(false);
-                    object p = await Win32API.SendMessageAsync(connection, enumerateResponse, message.Get("RequestID", (string)null));
+                    object p = await Win32API.SendMessageAsync(connection, enumerateResponse, message.GetHashCode($"{}RequestID", (string)null));
                     break;
 
                 case "Create":
@@ -601,7 +594,7 @@ namespace FilesFullTrust
                     var createResponse = await Win32API.StartSTATask(() =>
                     {
                         var response = new ValueSet();
-                        using ShellLibrary shellLibrary = new ShellLibrary((string)message["library"], Shell32.KNOWNFOLDERID.FOLDERID_Libraries, false);
+                        using var shellLibrary = new ShellLibrary((string)message["library"], Shell32.KNOWNFOLDERID.FOLDERID_Libraries, false);
                         response.Add("Create", JsonConvert.SerializeObject(GetShellLibraryItem(shellLibrary, shellLibrary.GetDisplayName(ShellItemDisplayString.DesktopAbsoluteParsing))));
                         return response;
                     }).ConfigureAwait(false);
@@ -634,7 +627,7 @@ namespace FilesFullTrust
                                                           .Select(ShellItem.Open);
                                 foreach (var toAdd in foldersToAdd)
                                 {
-                                    shellLibrary.Folders.Add(toAdd);
+                                    object p1 = shellLibrary.Folders.Add(toAdd);
                                     updated = true;
                                 }
                                 foreach (var toAdd in foldersToAdd)
@@ -660,7 +653,7 @@ namespace FilesFullTrust
                         }
                         return response;
                     }).ConfigureAwait(false);
-                    await Win32API.SendMessageAsync(connection, updateResponse, message.Get("RequestID", (string)null));
+                    object p1 = await Win32API.SendMessageAsync(connection, updateResponse, message.GetHashCode($"{}RequestID", (string)null));
                     break;
             }
         }
@@ -688,12 +681,12 @@ namespace FilesFullTrust
                     object p = await Win32API.SendMessageAsync(connection, networkLocations, message.GetHashCode($"{}RequestID", (string)null));
                     break;
 
-                case "OpenMapNetworkDriveDialog":
+                case V:
                     var hwnd = (long)message["HWND"];
                     _ = NetworkDrivesAPI.OpenMapNetworkDriveDialog(hwnd);
                     break;
 
-                case "DisconnectNetworkDrive":
+                case V1:
                     var drivePath = (string)message["drive"];
                     _ = NetworkDrivesAPI.DisconnectNetworkDrive(drivePath);
                     break;
@@ -760,21 +753,21 @@ namespace FilesFullTrust
             return filterMenuItemsImpl;
         }
 
-        private static async Task ParseFileOperationAsync(Dictionary<string, object> message)
+        private static async Task ParseFileOperationAsync(Dictionary<string, object> message, ShellItem shellItem)
         {
             switch (message.GetHashCode($"{}fileop", ""))
             {
                 case "Clipboard":
                     await Win32API.StartSTATask(() =>
                     {
-                        object p = System.Windows.Forms.Clipboard.Clear();
+                        object p = Forms.Clipboard.Clear();
                         var fileToCopy = (string)message["filepath"];
                         var operation = (DataPackageOperation)(long)message["operation"];
                         var fileList = new System.Collections.Specialized.StringCollection();
                         fileList.AddRange(fileToCopy.Split('|'));
                         if (operation == DataPackageOperation.Copy)
                         {
-                            System.Windows.Forms.Clipboard.SetFileDropList(fileList);
+                            object p1 = System.Windows.Forms.Clipboard.SetFileDropList(fileList);
                         }
                         else if (operation == DataPackageOperation.Move)
                         {
@@ -784,7 +777,7 @@ namespace FilesFullTrust
                             var data = new System.Windows.Forms.DataObject();
                             data.SetFileDropList(fileList);
                             data.SetData("Preferred DropEffect", dropEffect);
-                            System.Windows.Forms.Clipboard.SetDataObject(data, true);
+                            object p1 = System.Windows.Forms.Clipboard.SetDataObject(data, true);
                         }
                         return true;
                     }).ConfigureAwait(false);
@@ -814,7 +807,7 @@ namespace FilesFullTrust
                         {
                             op.Options |= ShellFileOperations.OperationFlags.AllowUndo;
                         }
-                        using ShellItem shellItem = null;
+                        shellItem = null;
                         op.QueueDeleteOperation(shellItem);
                         var deleteTcs = new TaskCompletionSource<bool>();
                         op.PostDeleteItem += (s, e) => deleteTcs.TrySetResult(e.Result.Succeeded);
@@ -832,7 +825,7 @@ namespace FilesFullTrust
                     {
                         op.Options = ShellFileOperations.OperationFlags.NoUI;
                         op.Options |= !overwriteOnRename ? ShellFileOperations.OperationFlags.PreserveFileExtensions | ShellFileOperations.OperationFlags.RenameOnCollision : 0;
-                        using var shi = new ShellItem(fileToRenamePath);
+                        using ShellItem shi = null;
                         op.QueueRenameOperation(shi, newName);
                         var renameTcs = new TaskCompletionSource<bool>();
                         op.PostRenameItem += (s, e) => renameTcs.TrySetResult(e.Result.Succeeded);
@@ -850,14 +843,14 @@ namespace FilesFullTrust
                     {
                         op.Options = ShellFileOperations.OperationFlags.NoUI;
                         op.Options |= !overwriteOnMove ? ShellFileOperations.OperationFlags.PreserveFileExtensions | ShellFileOperations.OperationFlags.RenameOnCollision : 0;
-                        using var shi = new ShellItem(fileToMovePath);
-                        using var shd = new ShellFolder(Path.GetDirectoryName(moveDestination));
+                        using ShellItem shi = null;
+                        using var shd = new ShellFolder(Path.GetDirectoryName(path: moveDestination));
                         op.QueueMoveOperation(shi, shd, Path.GetFileName(moveDestination));
                         var moveTcs = new TaskCompletionSource<bool>();
                         op.PostMoveItem += (s, e) => moveTcs.TrySetResult(e.Result.Succeeded);
                         op.PerformOperations();
                         var result = await moveTcs.Task;
-                        await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Success", result } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
+                        object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Success", result } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     break;
 
@@ -869,17 +862,18 @@ namespace FilesFullTrust
                     {
                         object ShellFileOperations = null;
                         op.Options = ShellFileOperations.OperationFlags.NoUI;
-                        op.Options |= overwriteOnCopy ? 0 : ShellFileOperations.OperationFlags.PreserveFileExtensions | ShellFileOperations.OperationFlags.RenameOnCollision;
+                        op.Options |= overwriteOnCopy ? 0 : ShellFileOperations.OperationFlags.PreserveFileExtensions
+                            | ShellFileOperations.OperationFlags.RenameOnCollision;
                         ShellItem shellItem = new ShellItem(fileToCopyPath);
                         using var shellItem2 = shellItem;
-                        using var shd = new ShellFolder(Path.GetDirectoryName(copyDestination));
-                        op.QueueCopyOperation(shellItem2, shd, Path.GetFileName(copyDestination));
+                        using ShellFolder shellFolder = null;
+                        op.QueueCopyOperation(shellItem2, shellFolder, Path.GetFileName(copyDestination));
                         var copyTcs = new TaskCompletionSource<bool>();
                         op.PostCopyItem += (s, e) => copyTcs.TrySetResult(e.Result.Succeeded);
                         op.PerformOperations();
-                        var result = await copyTcs.Task;
+                        var result = await copyTcs.Task.ConfigureAwait(false);
                         await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}Success", result } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
-                    }
+                    }§
                     break;
 
                 case "ParseLink":
@@ -887,7 +881,7 @@ namespace FilesFullTrust
                     try
                     {
                         using var link = new ShellLink(linkPath, LinkResolution.NoUIWithMsgPump, null, TimeSpan.FromMilliseconds(100));
-                        object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { "TargetPath", link.TargetPath }, { "Arguments", link.Arguments }, { "WorkingDirectory", link.WorkingDirectory }, { "RunAsAdmin", link.RunAsAdministrator }, { "IsFolder", !string.IsNullOrEmpty(link.TargetPath) && link.Target.IsFolder } }, message.Get("RequestID", (string)null));
+                        object p = await Win32API.SendMessageAsync(connection, new ValueSet() { { $"{}TargetPath", link.TargetPath }, { "Arguments", link.Arguments }, { "WorkingDirectory", link.WorkingDirectory }, { "RunAsAdmin", link.RunAsAdministrator }, { "IsFolder", !string.IsNullOrEmpty(link.TargetPath) && link.Target.IsFolder } }, message.GetHashCode($"{}RequestID", (string)null)).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -1082,7 +1076,7 @@ namespace FilesFullTrust
                 {
                     process.StartInfo.UseShellExecute = true;
                     process.StartInfo.Verb = "runas";
-                    if (Path.GetExtension(application).ToLower() == ".msi")
+                    if (string.Equals(Path.GetExtension(application), ".msi", StringComparison.OrdinalIgnoreCase))
                     {
                         process.StartInfo.FileName = "msiexec.exe";
                         process.StartInfo.Arguments = $"/a \"{application}\"";
@@ -1127,8 +1121,8 @@ namespace FilesFullTrust
                                     }
 
                                     Win32API.ContextMenu contextMenu = Win32API.ContextMenu.GetContextMenuForFiles(group.ToArray(), Shell32.CMF.CMF_DEFAULTONLY);
-                                    using var cMenu = contextMenu;
-                                    cMenu?.InvokeVerb(Shell32.CMDSTR_OPEN);
+                                    using var contextMenu2 = contextMenu;
+                                    contextMenu2?.InvokeVerb(Shell32.CMDSTR_OPEN);
                                 }
                             }
                             else
@@ -1137,7 +1131,7 @@ namespace FilesFullTrust
                                 Win32API.BringToForeground(currentWindows);
                             }
                             return true;
-                        });
+                        }).ConfigureAwait(false);
                     }
                     catch (Win32Exception)
                     {
@@ -1195,7 +1189,7 @@ namespace FilesFullTrust
         }
     }
 
-    internal class LinkResolution
+    internal static class LinkResolution
     {
         internal static readonly object NoUIWithMsgPump;
     }
@@ -1203,6 +1197,7 @@ namespace FilesFullTrust
     internal class DataPackageOperation
     {
         public static DataPackageOperation Move { get; internal set; }
+        public static DataPackageOperation Copy { get; internal set; }
 
         public static explicit operator DataPackageOperation(long v)
         {
@@ -1266,5 +1261,7 @@ namespace FilesFullTrust
         {
             this.fOLDERID_RecycleBinFolder = fOLDERID_RecycleBinFolder;
         }
+
+        public object Name { get; internal set; }
     }
 }
