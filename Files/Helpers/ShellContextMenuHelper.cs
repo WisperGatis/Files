@@ -68,7 +68,7 @@ namespace Files.Helpers
                                 bool showIcons = true,
                                 int itemsBeforeOverflow = int.MaxValue)
         {
-            var itemsCount = 0; // Separators do not count for reaching the overflow threshold
+            var itemsCount = 0;
             var menuItems = menuFlyoutItems.TakeWhile(x => x.Type == MenuItemType.MFT_SEPARATOR || ++itemsCount <= itemsBeforeOverflow).ToList();
             var overflowItems = menuFlyoutItems.Except(menuItems).ToList();
 
@@ -92,13 +92,12 @@ namespace Files.Helpers
                 }
             }
             foreach (var menuFlyoutItem in menuItems
-                .SkipWhile(x => x.Type == MenuItemType.MFT_SEPARATOR) // Remove leading separators
+                .SkipWhile(x => x.Type == MenuItemType.MFT_SEPARATOR) 
                 .Reverse()
-                .SkipWhile(x => x.Type == MenuItemType.MFT_SEPARATOR)) // Remove trailing separators
+                .SkipWhile(x => x.Type == MenuItemType.MFT_SEPARATOR)) 
             {
                 if ((menuFlyoutItem.Type == MenuItemType.MFT_SEPARATOR) && (menuItemsListLocal.FirstOrDefault().ItemType == ItemType.Separator))
                 {
-                    // Avoid duplicate separators
                     continue;
                 }
 

@@ -20,13 +20,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace Files.Views.LayoutModes
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class ColumnViewBase : BaseLayout
     {
         private DispatcherQueueTimer tapDebounceTimer;
@@ -167,10 +163,6 @@ namespace Files.Views.LayoutModes
         {
             base.OnNavigatedTo(eventArgs);
             var param = (eventArgs.Parameter as NavigationArguments);
-            //NavParam = param.NavPathParam;
-            //var viewmodel = new ItemViewModel(FolderSettings);
-            //await ParentShellPageInstance.FilesystemViewModel.SetWorkingDirectoryAsync(NavParam);
-            //await viewmodel.SetWorkingDirectoryAsync(NavParam);
             FolderSettings.LayoutModeChangeRequested -= FolderSettings_LayoutModeChangeRequested;
             FolderSettings.LayoutModeChangeRequested += FolderSettings_LayoutModeChangeRequested;
             ParentShellPageInstance.IsCurrentInstance = true;
@@ -219,8 +211,6 @@ namespace Files.Views.LayoutModes
             TextBox textBox = null;
             textBlock = listViewItem.FindDescendant("ItemName") as TextBlock;
             textBox = listViewItem.FindDescendant("ListViewTextBoxItemName") as TextBox;
-            //textBlock = (listViewItem.ContentTemplateRoot as Border).FindDescendant("ItemName") as TextBlock;
-            //textBox = (listViewItem.ContentTemplateRoot as Border).FindDescendant("ListViewTextBoxItemName") as TextBox;
             textBox.Text = textBlock.Text;
             oldItemName = textBlock.Text;
             textBlock.Visibility = Visibility.Collapsed;
@@ -325,8 +315,6 @@ namespace Files.Views.LayoutModes
         {
             if (e != null)
             {
-                // Do not commit rename if SelectionChanged is due to selction rectangle (#3660)
-                //FileList.CommitEdit();
             }
             UnFocusPreviousListView?.Invoke(FileList, EventArgs.Empty);
             tapDebounceTimer.Stop();
@@ -350,7 +338,6 @@ namespace Files.Views.LayoutModes
                     return;
                 }
             }
-            // Check if RightTapped row is currently selected
             if (IsItemSelected)
             {
                 if (SelectedItems.Contains(objectPressed))
@@ -359,7 +346,6 @@ namespace Files.Views.LayoutModes
                 }
             }
 
-            // The following code is only reachable when a user RightTapped an unselected row
             ItemManipulationModel.SetSelectedItem(objectPressed);
         }
 
@@ -394,17 +380,14 @@ namespace Files.Views.LayoutModes
             }
             else if (e.KeyStatus.IsMenuKeyDown && (e.Key == VirtualKey.Left || e.Key == VirtualKey.Right || e.Key == VirtualKey.Up))
             {
-                // Unfocus the GridView so keyboard shortcut can be handled
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
             else if (ctrlPressed && shiftPressed && (e.Key == VirtualKey.Left || e.Key == VirtualKey.Right || e.Key == VirtualKey.W))
             {
-                // Unfocus the ListView so keyboard shortcut can be handled (ctrl + shift + W/"->"/"<-")
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
             else if (e.KeyStatus.IsMenuKeyDown && shiftPressed && e.Key == VirtualKey.Add)
             {
-                // Unfocus the ListView so keyboard shortcut can be handled (alt + shift + "+")
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
         }
@@ -433,7 +416,6 @@ namespace Files.Views.LayoutModes
                         ItemInvoked?.Invoke(new ColumnParam { Path = item.ItemPath, ListView = FileList }, EventArgs.Empty);
                     }
                 }
-                // The delay gives time for the item to be selected
                 else
                 {
                     NavigationHelpers.OpenSelectedItems(ParentShellPageInstance, false);
@@ -455,7 +437,6 @@ namespace Files.Views.LayoutModes
                     return;
                 }
             }
-            // Check if RightTapped row is currently selected
             if (IsItemSelected)
             {
                 if (SelectedItems.Contains(objectPressed))
@@ -464,7 +445,6 @@ namespace Files.Views.LayoutModes
                 }
             }
 
-            // The following code is only reachable when a user RightTapped an unselected row
             ItemManipulationModel.SetSelectedItem(objectPressed);
         }
 
@@ -488,7 +468,6 @@ namespace Files.Views.LayoutModes
                 return;
             }
             var item = (e.ClickedItem as ListedItem);
-            // Check if the setting to open items with a single click is turned on
             if (AppSettings.OpenItemsWithOneclick)
             {
                 tapDebounceTimer.Stop();
@@ -501,7 +480,6 @@ namespace Files.Views.LayoutModes
                         ItemInvoked?.Invoke(new ColumnParam { Path = item.ItemPath, ListView = FileList }, EventArgs.Empty);
                     }
                 }
-                // The delay gives time for the item to be selected
                 else
                 {
                     NavigationHelpers.OpenSelectedItems(ParentShellPageInstance, false);
@@ -516,7 +494,6 @@ namespace Files.Views.LayoutModes
             {
                 return;
             }
-            // The following code is only reachable when a user RightTapped an unselected row
             ItemManipulationModel.SetSelectedItem(FileList.ItemFromContainer(parentContainer) as ListedItem);
         }
 
@@ -527,7 +504,6 @@ namespace Files.Views.LayoutModes
                 if ((sender as SelectorItem).IsSelected)
                 {
                     (sender as SelectorItem).IsSelected = false;
-                    // Prevent issues arising caused by the default handlers attempting to select the item that has just been deselected by ctrl + click
                     e.Handled = true;
                 }
             }
@@ -542,8 +518,6 @@ namespace Files.Views.LayoutModes
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            // This is the best way I could find to set the context flyout, as doing it in the styles isn't possible
-            // because you can't use bindings in the setters
             DependencyObject item = VisualTreeHelper.GetParent(sender as Grid);
             while (!(item is ListViewItem))
                 item = VisualTreeHelper.GetParent(item);

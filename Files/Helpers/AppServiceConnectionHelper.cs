@@ -30,7 +30,6 @@ namespace Files.Helpers
         {
             if (await Instance == null)
             {
-                // Need to reinitialize AppService when app is resuming
                 Instance = BuildConnection(true);
                 ConnectionChanged?.Invoke(null, Instance);
             }
@@ -63,21 +62,21 @@ namespace Files.Helpers
                 var res = response.Get("Success", 1L);
                 switch (res)
                 {
-                    case 0: // FTP is restarting as admin
+                    case 0:
                         var nullConn = Task.FromResult<NamedPipeAsAppServiceConnection>(null);
                         ConnectionChanged?.Invoke(null, nullConn);
                         (await Instance)?.Dispose();
-                        Instance = BuildConnection(false); // Fulltrust process is already running
+                        Instance = BuildConnection(false);
                         _ = await Instance;
                         ConnectionChanged?.Invoke(null, Instance);
                         wasElevated = true;
                         break;
 
-                    case -1: // FTP is already admin
+                    case -1: 
                         wasElevated = true;
                         break;
 
-                    default: // Failed (e.g canceled UAC)
+                    default: 
                         wasElevated = false;
                         break;
                 }
@@ -141,14 +140,13 @@ namespace Files.Helpers
             {
                 var info = ((byte[] Buffer, StringBuilder Message))result.AsyncState;
 
-                // Get the read bytes and append them
                 info.Message.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
 
-                if (!clientStream.IsMessageComplete) // Message is not complete, continue reading
+                if (!clientStream.IsMessageComplete)
                 {
                     BeginRead(info);
                 }
-                else // Message is completed
+                else 
                 {
                     var message = info.Message.ToString().TrimEnd('\0');
 
@@ -165,7 +163,7 @@ namespace Files.Helpers
                         }
                     }
 
-                    // Begin a new reading operation
+                    
                     var nextInfo = (Buffer: new byte[clientStream.InBufferSize], Message: new StringBuilder());
                     BeginRead(nextInfo);
                 }
@@ -226,7 +224,6 @@ namespace Files.Helpers
             }
             catch (System.IO.IOException)
             {
-                // Pipe is disconnected
                 ServiceClosed?.Invoke(this, null);
                 this.Cleanup();
             }
@@ -255,7 +252,6 @@ namespace Files.Helpers
             }
             catch (System.IO.IOException)
             {
-                // Pipe is disconnected
                 ServiceClosed?.Invoke(this, null);
                 this.Cleanup();
             }

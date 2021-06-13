@@ -30,7 +30,6 @@ namespace Files.UserControls
 {
     public sealed partial class NavigationToolbar : UserControl, INavigationToolbar, INotifyPropertyChanged
     {
-        // TODO: Remove this MainPage reference when we work on new Vertical Tabs control in MainPage
         private MainPage mainPage => ((Window.Current.Content as Frame).Content as MainPage);
 
         public delegate void ToolbarPathItemInvokedEventHandler(object sender, PathNavigationEventArgs e);
@@ -840,7 +839,6 @@ namespace Files.UserControls
 
         private void VisiblePath_Loaded(object sender, RoutedEventArgs e)
         {
-            // AutoSuggestBox won't receive focus unless it's fully loaded
             VisiblePath.Focus(FocusState.Programmatic);
             DependencyObjectHelpers.FindChild<TextBox>(VisiblePath)?.SelectAll();
         }
@@ -1062,7 +1060,6 @@ namespace Files.UserControls
 
             if (pathBoxItem.Path == dragOverPath)
             {
-                // Reset dragged over pathbox item
                 dragOverPath = null;
             }
         }
@@ -1143,7 +1140,7 @@ namespace Files.UserControls
 
         private void PathBoxItem_Drop(object sender, DragEventArgs e)
         {
-            dragOverPath = null; // Reset dragged over pathbox item
+            dragOverPath = null; 
 
             if (!((sender as Grid).DataContext is PathBoxItem pathBoxItem) ||
                 pathBoxItem.Path == "Home" || pathBoxItem.Path == "NewTab".GetLocalized())
@@ -1216,7 +1213,6 @@ namespace Files.UserControls
         {
             if (!(mainPage.ViewModel.MultitaskingControl is VerticalTabViewControl))
             {
-                // Set multitasking control if changed and subscribe it to event for sidebar items updating
                 if (mainPage.ViewModel.MultitaskingControl != null)
                 {
                     mainPage.ViewModel.MultitaskingControl.CurrentInstanceChanged -= mainPage.MultitaskingControl_CurrentInstanceChanged;
@@ -1257,8 +1253,6 @@ namespace Files.UserControls
             {
                 IsSearchBoxVisible = true;
 
-                // Given that binding and layouting might take a few cycles, when calling UpdateLayout
-                // we can guarantee that the focus call will be able to find an open ASB
                 SearchRegion.UpdateLayout();
 
                 SearchRegion.Focus(FocusState.Programmatic);

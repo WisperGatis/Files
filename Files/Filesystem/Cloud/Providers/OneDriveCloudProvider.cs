@@ -45,7 +45,6 @@ namespace Files.Filesystem.Cloud.Providers
             }
             catch
             {
-                // Not detected
                 return Array.Empty<CloudProvider>();
             }
         }

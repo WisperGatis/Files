@@ -185,8 +185,6 @@ namespace Files.Views
             this.ActivePane = PaneLeft;
             this.IsRightPaneVisible = IsMultiPaneEnabled && AppSettings.AlwaysOpenDualPaneInNewTab;
             App.AppSettings.PropertyChanged += AppSettings_PropertyChanged;
-
-            // TODO: fallback / error when failed to get NavigationViewCompactPaneLength value?
         }
 
         private void Current_SizeChanged(object sender, WindowSizeChangedEventArgs e)
@@ -293,14 +291,14 @@ namespace Files.Views
 
             switch (c: ctrl, s: shift, m: menu, k: args.KeyboardAccelerator.Key)
             {
-                case (true, true, false, VirtualKey.Left): // ctrl + shift + "<-" select left pane
+                case (true, true, false, VirtualKey.Left): 
                     if (AppSettings.IsDualPaneEnabled)
                     {
                         ActivePane = PaneLeft;
                     }
                     break;
 
-                case (true, true, false, VirtualKey.Right): // ctrl + shift + "->" select right pane
+                case (true, true, false, VirtualKey.Right): 
                     if (AppSettings.IsDualPaneEnabled)
                     {
                         if (string.IsNullOrEmpty(NavParamsRight))
@@ -312,11 +310,11 @@ namespace Files.Views
                     }
                     break;
 
-                case (true, true, false, VirtualKey.W): // ctrl + shift + "W" close right pane
+                case (true, true, false, VirtualKey.W): 
                     IsRightPaneVisible = false;
                     break;
 
-                case (false, true, true, VirtualKey.Add): // alt + shift + "+" open pane
+                case (false, true, true, VirtualKey.Add): 
                     if (AppSettings.IsDualPaneEnabled)
                     {
                         if (string.IsNullOrEmpty(NavParamsRight))

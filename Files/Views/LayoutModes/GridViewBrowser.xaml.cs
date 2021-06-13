@@ -28,9 +28,6 @@ namespace Files.Views.LayoutModes
     {
         public string oldItemName;
 
-        /// <summary>
-        /// The minimum item width for items. Used in the StretchedGridViewItems behavior.
-        /// </summary>
         public int GridViewItemMinWidth => FolderSettings.LayoutMode == FolderLayoutModes.TilesView ? Constants.Browser.GridViewBrowser.TilesView : FolderSettings.GridViewSize;
 
         public GridViewBrowser()
@@ -153,7 +150,7 @@ namespace Files.Views.LayoutModes
             currentIconSize = FolderSettings.GetIconSize();
             FolderSettings.LayoutModeChangeRequested -= FolderSettings_LayoutModeChangeRequested;
             FolderSettings.LayoutModeChangeRequested += FolderSettings_LayoutModeChangeRequested;
-            SetItemTemplate(); // Set ItemTemplate
+            SetItemTemplate();
             if (FileList.ItemsSource == null)
             {
                 FileList.ItemsSource = ParentShellPageInstance.FilesystemViewModel.FilesAndFolders;
@@ -206,7 +203,6 @@ namespace Files.Views.LayoutModes
             SetItemMinWidth();
             itemTemplateChanging = true;
 
-            // Set GridViewSize event handlers
             if (FolderSettings.LayoutMode == FolderLayoutModes.TilesView)
             {
                 FolderSettings.GridViewSizeChangeRequested -= FolderSettings_GridViewSizeChangeRequested;
@@ -218,9 +214,6 @@ namespace Files.Views.LayoutModes
             }
         }
 
-        /// <summary>
-        /// Updates the min size for the item containers
-        /// </summary>
         private void SetItemMinWidth()
         {
             NotifyPropertyChanged(nameof(GridViewItemMinWidth));
@@ -252,13 +245,10 @@ namespace Files.Views.LayoutModes
             GridViewItem gridViewItem = FileList.ContainerFromItem(renamingItem) as GridViewItem;
             TextBox textBox = null;
 
-            // Handle layout differences between tiles browser and photo album
             if (FolderSettings.LayoutMode == FolderLayoutModes.GridView)
             {
                 Popup popup = gridViewItem.FindDescendant("EditPopup") as Popup;
                 TextBlock textBlock = gridViewItem.FindDescendant("ItemName") as TextBlock;
-                //Popup popup = (gridViewItem.ContentTemplateRoot as Grid).FindName("EditPopup") as Popup;
-                //TextBlock textBlock = (gridViewItem.ContentTemplateRoot as Grid).FindName("ItemName") as TextBlock;
                 textBox = popup.Child as TextBox;
                 textBox.Text = textBlock.Text;
                 popup.IsOpen = true;
@@ -268,8 +258,6 @@ namespace Files.Views.LayoutModes
             {
                 TextBlock textBlock = gridViewItem.FindDescendant("ItemName") as TextBlock;
                 textBox = gridViewItem.FindDescendant("TileViewTextBoxItemName") as TextBox;
-                //TextBlock textBlock = (gridViewItem.ContentTemplateRoot as Grid).FindName("ItemName") as TextBlock;
-                //textBox = (gridViewItem.ContentTemplateRoot as Grid).FindName("TileViewTextBoxItemName") as TextBox;
                 textBox.Text = textBlock.Text;
                 oldItemName = textBlock.Text;
                 textBlock.Visibility = Visibility.Collapsed;
@@ -326,7 +314,6 @@ namespace Files.Views.LayoutModes
 
         private void RenameTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            // This check allows the user to use the text box context menu without ending the rename
             if (!(FocusManager.GetFocusedElement() is AppBarButton))
             {
                 TextBox textBox = e.OriginalSource as TextBox;
@@ -403,17 +390,14 @@ namespace Files.Views.LayoutModes
             }
             else if (e.KeyStatus.IsMenuKeyDown && (e.Key == VirtualKey.Left || e.Key == VirtualKey.Right || e.Key == VirtualKey.Up))
             {
-                // Unfocus the GridView so keyboard shortcut can be handled
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
             else if (ctrlPressed && shiftPressed && (e.Key == VirtualKey.Left || e.Key == VirtualKey.Right || e.Key == VirtualKey.W))
             {
-                // Unfocus the ListView so keyboard shortcut can be handled (ctrl + shift + W/"->"/"<-")
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
             else if (e.KeyStatus.IsMenuKeyDown && shiftPressed && e.Key == VirtualKey.Add)
             {
-                // Unfocus the ListView so keyboard shortcut can be handled (alt + shift + "+")
                 (ParentShellPageInstance.NavigationToolbar as Control)?.Focus(FocusState.Pointer);
             }
         }
@@ -424,7 +408,7 @@ namespace Files.Views.LayoutModes
             {
                 if (ParentShellPageInstance.CurrentPageType == typeof(GridViewBrowser) && !IsRenamingItem)
                 {
-                    // Don't block the various uses of enter key (key 13)
+
                     var focusedElement = FocusManager.GetFocusedElement() as FrameworkElement;
                     if (args.KeyCode == 13
                         || focusedElement is Button
@@ -453,7 +437,7 @@ namespace Files.Views.LayoutModes
                 if ((sender as SelectorItem).IsSelected)
                 {
                     (sender as SelectorItem).IsSelected = false;
-                    // Prevent issues arising caused by the default handlers attempting to select the item that has just been deselected by ctrl + click
+
                     e.Handled = true;
                 }
             }
@@ -471,12 +455,12 @@ namespace Files.Views.LayoutModes
         private void FolderSettings_GridViewSizeChangeRequested(object sender, EventArgs e)
         {
             SetItemMinWidth();
-            var requestedIconSize = FolderSettings.GetIconSize(); // Get new icon size
+            var requestedIconSize = FolderSettings.GetIconSize();
 
-            // Prevents reloading icons when the icon size hasn't changed
+
             if (requestedIconSize != currentIconSize)
             {
-                currentIconSize = requestedIconSize; // Update icon size before refreshing
+                currentIconSize = requestedIconSize;
                 ReloadItemIcons();
             }
         }
@@ -500,23 +484,20 @@ namespace Files.Views.LayoutModes
             var ctrlPressed = Window.Current.CoreWindow.GetKeyState(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
             var shiftPressed = Window.Current.CoreWindow.GetKeyState(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down);
 
-            // Skip code if the control or shift key is pressed or if the user is using multiselect
             if (ctrlPressed || shiftPressed || MainViewModel.MultiselectEnabled)
             {
                 return;
             }
 
-            // Check if the setting to open items with a single click is turned on
             if (AppSettings.OpenItemsWithOneclick)
             {
-                await Task.Delay(200); // The delay gives time for the item to be selected
+                await Task.Delay(200);
                 NavigationHelpers.OpenSelectedItems(ParentShellPageInstance, false);
             }
         }
 
         private async void FileList_ChoosingItemContainer(ListViewBase sender, ChoosingItemContainerEventArgs args)
         {
-            // This resizes the items after the item template has been changed and reloaded
             if(itemTemplateChanging)
             {
                 itemTemplateChanging = false;
@@ -534,7 +515,7 @@ namespace Files.Views.LayoutModes
             if (args.Item is ListedItem item && !item.ItemPropertiesInitialized)
             {
                 args.ItemContainer.PointerPressed += FileListGridItem_PointerPressed;
-                args.ItemContainer.CanDrag = args.ItemContainer.IsSelected; // Update CanDrag
+                args.ItemContainer.CanDrag = args.ItemContainer.IsSelected; 
 
                 item.ItemPropertiesInitialized = true;
 
@@ -544,7 +525,7 @@ namespace Files.Views.LayoutModes
 
         private void FileList_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
-            // Skip opening selected items if the double tap doesn't capture an item
+
             if ((e.OriginalSource as FrameworkElement)?.DataContext is ListedItem && !AppSettings.OpenItemsWithOneclick)
             {
                 if (!MainViewModel.MultiselectEnabled)
@@ -566,8 +547,7 @@ namespace Files.Views.LayoutModes
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            // This is the best way I could find to set the context flyout, as doing it in the styles isn't possible
-            // because you can't use bindings in the setters
+
             DependencyObject item = VisualTreeHelper.GetParent(sender as Grid);
             while (!(item is GridViewItem))
                 item = VisualTreeHelper.GetParent(item);

@@ -385,6 +385,11 @@ namespace FilesFullTrust
                 }
             }
 
+            internal static ContextMenu GetContextMenuForFiles(string[] vs, object cMF_DEFAULTONLY)
+            {
+                throw new NotImplementedException();
+            }
+
             ~ContextMenu()
             {
                 Dispose(false);

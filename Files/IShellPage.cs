@@ -57,9 +57,9 @@ namespace Files
 
     public interface IMultiPaneInfo
     {
-        public bool IsPageMainPane { get; } // The instance is the left (or only) pane
-        public bool IsMultiPaneActive { get; } // Another pane is shown
-        public bool IsMultiPaneEnabled { get; } // Multi pane is enabled
+        public bool IsPageMainPane { get; }
+        public bool IsMultiPaneActive { get; }
+        public bool IsMultiPaneEnabled { get; }
         public IPaneHolder PaneHolder { get; }
     }
 }

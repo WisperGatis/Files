@@ -72,8 +72,6 @@ namespace Files.Filesystem
             set => SetProperty(ref loadCustomIcon, value);
         }
 
-        // Note: Never attempt to call this from a secondary window or another thread, create a new instance from CustomIconSource instead
-        // TODO: eventually we should remove this b/c it's not thread safe
         private BitmapImage customIcon;
 
         public BitmapImage CustomIcon
@@ -119,7 +117,6 @@ namespace Files.Filesystem
             get => syncStatusUI;
             set
             {
-                // For some reason this being null will cause a crash with bindings
                 if (value is null)
                 {
                     value = new CloudDriveSyncStatusUI();
@@ -131,7 +128,6 @@ namespace Files.Filesystem
             }
         }
 
-        // This is used to avoid passing a null value to AutomationProperties.Name, which causes a crash
         public string SyncStatusString
         {
             get => string.IsNullOrEmpty(SyncStatusUI?.SyncStatusString) ? "CloudDriveSyncStatus_Unknown".GetLocalized() : SyncStatusUI.SyncStatusString;
@@ -252,11 +248,6 @@ namespace Files.Filesystem
             set => SetProperty(ref itemProperties, value);
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ListedItem" /> class, optionally with an explicitly-specified dateReturnFormat.
-        /// </summary>
-        /// <param name="folderRelativeId"></param>
-        /// <param name="dateReturnFormat">Specify a date return format to reduce redundant checks of this setting.</param>
         public ListedItem(string folderRelativeId, string dateReturnFormat = null)
         {
             FolderRelativeId = folderRelativeId;
@@ -272,7 +263,6 @@ namespace Files.Filesystem
             }
         }
 
-        // Parameterless constructor for JsonConvert
         public ListedItem()
         { }
 
@@ -325,7 +315,6 @@ namespace Files.Filesystem
             set => SetProperty(ref itemFile, value);
         }
 
-        // This is a hack used because x:Bind casting did not work properly
         [JsonIgnore]
         public RecycleBinItem AsRecycleBinItem => this as RecycleBinItem;
 
@@ -338,7 +327,6 @@ namespace Files.Filesystem
         {
         }
 
-        // Parameterless constructor for JsonConvert
         public RecycleBinItem() : base()
         { }
 
@@ -356,10 +344,8 @@ namespace Files.Filesystem
 
         private DateTimeOffset itemDateDeletedReal;
 
-        // For recycle bin elements (path + name)
         public string ItemOriginalPath { get; set; }
 
-        // For recycle bin elements (path)
         public string ItemOriginalFolder => Path.IsPathRooted(ItemOriginalPath) ? Path.GetDirectoryName(ItemOriginalPath) : ItemOriginalPath;
         public string ItemOriginalFolderName => Path.GetFileName(ItemOriginalFolder);
 
@@ -371,11 +357,9 @@ namespace Files.Filesystem
         {
         }
 
-        // Parameterless constructor for JsonConvert
         public ShortcutItem() : base()
         { }
 
-        // For shortcut elements (.lnk and .url)
         public string TargetPath { get; set; }
 
         public string Arguments { get; set; }
@@ -395,7 +379,6 @@ namespace Files.Filesystem
             ItemType = "ItemTypeLibrary".GetLocalized();
             LoadCustomIcon = true;
             CustomIcon = lib.Icon;
-            //CustomIconSource = lib.IconSource;
             CustomIconData = lib.IconData;
             LoadFileIcon = CustomIconData != null;
 

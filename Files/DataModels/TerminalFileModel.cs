@@ -38,7 +38,6 @@ namespace Files.DataModels
 
         public void AddTerminal(Terminal terminal)
         {
-            //Ensure terminal is not already in List
             if (Terminals.FirstOrDefault(x => x.Name.Equals(terminal.Name, StringComparison.OrdinalIgnoreCase)) == null)
             {
                 Terminals.Add(terminal);

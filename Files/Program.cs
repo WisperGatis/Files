@@ -28,7 +28,6 @@ namespace Files
                         {
                             case ParsedCommandType.ExplorerShellCommand:
                                 await OpenShellCommandInExplorerAsync(command.Payload, proc.Id);
-                                //Exit..
 
                                 return;
 

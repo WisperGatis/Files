@@ -43,10 +43,8 @@ namespace Files.Helpers
                     ActivationType = ToastActivationType.Protocol
                 };
 
-                // Create the toast notification
                 var toastNotif = new ToastNotification(toastContent.GetXml());
 
-                // And send the notification
                 ToastNotificationManager.CreateToastNotifier().Show(toastNotif);
             }
             else
@@ -96,12 +94,12 @@ namespace Files.Helpers
                     }
                     else
                     {
-                        type = "\xE74E"; // Floppy icon
+                        type = "\xE74E"; 
                     }
                     break;
 
                 default:
-                    type = "\xEDA2"; // Drive icon
+                    type = "\xEDA2"; 
                     break;
             }
 

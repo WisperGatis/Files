@@ -42,8 +42,6 @@ namespace Files.Views
                 }
                 catch
                 {
-                    // Attempting to open more than one ContentDialog
-                    // at a time will throw an error)
                     if (UIHelpers.IsAnyContentDialogOpen())
                     {
                         return false;

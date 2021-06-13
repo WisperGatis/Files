@@ -29,8 +29,6 @@ namespace Files.Helpers
                     var icon = response.Get("Icon", (string)null);
                     var overlay = response.Get("Overlay", (string)null);
 
-                    // BitmapImage can only be created on UI thread, so return raw data and create
-                    // BitmapImage later to prevent exceptions once SynchorizationContext lost
                     return (icon == null ? null : Convert.FromBase64String(icon),
                         overlay == null ? null : Convert.FromBase64String(overlay),
                         hasCustomIcon);
@@ -53,8 +51,6 @@ namespace Files.Helpers
                 {
                     var icon = response.Get("Icon", (string)null);
 
-                    // BitmapImage can only be created on UI thread, so return raw data and create
-                    // BitmapImage later to prevent exceptions once SynchorizationContext lost
                     return (icon == null ? null : Convert.FromBase64String(icon));
                 }
             }

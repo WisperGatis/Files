@@ -91,10 +91,9 @@ namespace Files.Filesystem
             {
                 await SyncSideBarItemsUI();
             }
-            catch (Exception) // UI Thread not ready yet, so we defer the pervious operation until it is.
+            catch (Exception) 
             {
                 System.Diagnostics.Debug.WriteLine($"RefreshUI Exception");
-                // Defer because UI-thread is not ready yet (and DriveItem requires it?)
                 CoreApplication.MainView.Activated += RefreshUI;
             }
         }

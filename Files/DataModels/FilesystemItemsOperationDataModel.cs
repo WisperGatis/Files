@@ -38,14 +38,8 @@ namespace Files.DataModels
 
         public bool PermanentlyDeleteEnabled;
 
-        /// <summary>
-        /// The items that are copied/moved/deleted from the source directory (to destination)
-        /// </summary>
         public List<FilesystemItemsOperationItemModel> IncomingItems;
 
-        /// <summary>
-        /// The items that are conflicting between <see cref="IncomingItems"/> and the items that are in the destination directory
-        /// </summary>
         public List<FilesystemItemsOperationItemModel> ConflictingItems;
 
         public FilesystemItemsOperationDataModel(FilesystemOperationType operationType, bool mustResolveConflicts, bool permanentlyDelete, bool permanentlyDeleteEnabled, List<FilesystemItemsOperationItemModel> incomingItems, List<FilesystemItemsOperationItemModel> conflictingItems)
@@ -64,7 +58,6 @@ namespace Files.DataModels
 
             List<FilesystemItemsOperationItemModel> nonConflictingItems = IncomingItems.Except(ConflictingItems).ToList();
 
-            // Add conflicting items first
             foreach (var item in ConflictingItems)
             {
                 var iconData = await FileThumbnailHelper.LoadIconWithoutOverlayAsync(item.SourcePath, 64u);
@@ -81,7 +74,6 @@ namespace Files.DataModels
                 });
             }
 
-            // Then add non-conflicting items
             foreach (var item in nonConflictingItems)
             {
                 var iconData = await FileThumbnailHelper.LoadIconWithoutOverlayAsync(item.SourcePath, 64u);

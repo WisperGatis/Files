@@ -37,7 +37,6 @@ namespace Files.CommandLine
                         break;
 
                     default:
-                        //case "-Cmdless":
                         try
                         {
                             if (kvp.Value.StartsWith("::{") || kvp.Value.StartsWith("shell:"))
@@ -92,11 +91,9 @@ namespace Files.CommandLine
         public static List<KeyValuePair<string, string>> Parse(string[] args = null)
         {
             var parsedArgs = new List<KeyValuePair<string, string>>();
-            //Environment.GetCommandLineArgs() IS better but... I haven't tested this enough.
 
             if (args != null)
             {
-                //if - or / are not used then add the command as-is
 
                 if (args.Length > 2)
                 {

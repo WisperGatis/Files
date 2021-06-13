@@ -16,9 +16,7 @@ namespace Files.Helpers
                 shouldReload = true;
                 return new TWidget();
             }
-            else if (!canAddWidget && !isWidgetSettingEnabled) // The widgets exists but the setting has been disabled for it
-            {
-                // Remove the widget
+            else if (!canAddWidget && !isWidgetSettingEnabled) 
                 widgetsViewModel.RemoveWidget<TWidget>();
                 shouldReload = false;
                 return default;
@@ -52,10 +50,8 @@ namespace Files.Helpers
             {
                 return App.AppSettings.ShowRecentFilesWidget;
             }
-            // A custom widget it is - TWidget implements ICustomWidgetItemModel
             if (typeof(ICustomWidgetItemModel).IsAssignableFrom(typeof(TWidget)))
             {
-                // Return true for custom widgets - they're always enabled
                 return true;
             }
 

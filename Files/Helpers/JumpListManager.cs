@@ -28,7 +28,6 @@ namespace Files.Helpers
                 {
                     instance = await JumpList.LoadCurrentAsync();
 
-                    // Disable automatic jumplist. It doesn't work with Files UWP.
                     instance.SystemGroupKind = JumpListSystemGroupKind.None;
                     JumpListItemPaths = instance.Items.Select(item => item.Arguments).ToList();
                 }
@@ -42,8 +41,6 @@ namespace Files.Helpers
 
         public async void AddFolderToJumpList(string path)
         {
-            // Saving to jumplist may fail randomly with error: ERROR_UNABLE_TO_REMOVE_REPLACED
-            // In that case app should just catch the error and proceed as usual
             try
             {
                 AddFolder(path);
@@ -79,12 +76,10 @@ namespace Files.Helpers
                         case "Pictures":
                         case "Music":
                         case "Videos":
-                            // Use localized name
                             displayName = $"ms-resource:///Resources/Sidebar{libName}";
                             break;
 
                         default:
-                            // Use original name
                             displayName = library.Text;
                             break;
                     }
@@ -105,8 +100,6 @@ namespace Files.Helpers
 
         public async void RemoveFolder(string path)
         {
-            // Updating the jumplist may fail randomly with error: FileLoadException: File in use
-            // In that case app should just catch the error and proceed as usual
             try
             {
                 if (JumpListItemPaths.Contains(path))
@@ -122,7 +115,6 @@ namespace Files.Helpers
         {
             if (instance != null)
             {
-                // Clear all items to avoid localization issues
                 instance?.Items.Clear();
 
                 foreach (string path in JumpListItemPaths)

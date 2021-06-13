@@ -31,7 +31,7 @@ namespace Files.Views
             if (BaseProperties is DriveProperties driveProps)
             {
                 var drive = driveProps.Drive;
-                ViewModel.ItemName = ItemFileName.Text; // Make sure ItemName is updated
+                ViewModel.ItemName = ItemFileName.Text; 
                 if (!string.IsNullOrWhiteSpace(ViewModel.ItemName) && ViewModel.OriginalItemName != ViewModel.ItemName)
                 {
                     if (AppInstance.ServiceConnection != null && AppInstance.FilesystemViewModel != null)
@@ -54,7 +54,7 @@ namespace Files.Views
             else if (BaseProperties is LibraryProperties libProps)
             {
                 var library = libProps.Library;
-                ViewModel.ItemName = ItemFileName.Text; // Make sure ItemName is updated
+                ViewModel.ItemName = ItemFileName.Text;
                 var newName = ViewModel.ItemName;
                 if (!string.IsNullOrWhiteSpace(newName) && ViewModel.OriginalItemName != newName)
                 {
@@ -76,7 +76,7 @@ namespace Files.Views
             }
             else
             {
-                ViewModel.ItemName = ItemFileName.Text; // Make sure ItemName is updated
+                ViewModel.ItemName = ItemFileName.Text; 
                 if (!string.IsNullOrWhiteSpace(ViewModel.ItemName) && ViewModel.OriginalItemName != ViewModel.ItemName)
                 {
                     return await CoreApplication.MainView.DispatcherQueue.EnqueueAsync(() => UIFilesystemHelpers.RenameFileItemAsync(item,
@@ -85,10 +85,8 @@ namespace Files.Views
                           AppInstance));
                 }
 
-                // Handle the hidden attribute
                 if (BaseProperties is CombinedProperties combinedProps)
                 {
-                    // Handle each file independently
                     foreach (var fileOrFolder in combinedProps.List)
                     {
                         await CoreApplication.MainView.DispatcherQueue.EnqueueAsync(() => UIFilesystemHelpers.SetHiddenAttributeItem(fileOrFolder, ViewModel.IsHidden, AppInstance.SlimContentPage.ItemManipulationModel));
@@ -97,7 +95,6 @@ namespace Files.Views
                 }
                 else
                 {
-                    // Handle the visibility attribute for a single file
                     await CoreApplication.MainView.DispatcherQueue.EnqueueAsync(() => UIFilesystemHelpers.SetHiddenAttributeItem(item, ViewModel.IsHidden, AppInstance.SlimContentPage.ItemManipulationModel));
 
                     return true;

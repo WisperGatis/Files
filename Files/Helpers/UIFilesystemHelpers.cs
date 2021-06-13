@@ -28,12 +28,10 @@ namespace Files.Helpers
 
             if (associatedInstance.SlimContentPage.IsItemSelected)
             {
-                // First, reset DataGrid Rows that may be in "cut" command mode
                 associatedInstance.SlimContentPage.ItemManipulationModel.RefreshItemsOpacity();
 
                 foreach (ListedItem listedItem in associatedInstance.SlimContentPage.SelectedItems)
                 {
-                    // Dim opacities accordingly
                     listedItem.Opacity = Constants.UI.DimItemOpacity;
 
                     if (listedItem.PrimaryItemAttribute == StorageItemTypes.File)
@@ -62,7 +60,6 @@ namespace Files.Helpers
                 }
                 else if (result.ErrorCode == FileSystemStatusCode.Unauthorized)
                 {
-                    // Try again with fulltrust process
                     if (associatedInstance.ServiceConnection != null)
                     {
                         string filePaths = string.Join('|', associatedInstance.SlimContentPage.SelectedItems.Select(x => x.ItemPath));
@@ -135,7 +132,6 @@ namespace Files.Helpers
                 }
                 if (result.ErrorCode == FileSystemStatusCode.Unauthorized)
                 {
-                    // Try again with fulltrust process
                     if (associatedInstance.ServiceConnection != null)
                     {
                         string filePaths = string.Join('|', associatedInstance.SlimContentPage.SelectedItems.Select(x => x.ItemPath));
@@ -221,7 +217,6 @@ namespace Files.Helpers
                 currentPath = associatedInstance.FilesystemViewModel.WorkingDirectory;
             }
 
-            // Show rename dialog
             DynamicDialog dialog = DynamicDialogFactory.GetFor_RenameDialog();
             await dialog.ShowAsync();
 
@@ -230,7 +225,6 @@ namespace Files.Helpers
                 return null;
             }
 
-            // Create file based on dialog result
             string userInput = dialog.ViewModel.AdditionalData as string;
             var folderRes = await associatedInstance.FilesystemViewModel.GetFolderWithPathFromPathAsync(currentPath);
             FilesystemResult<(ReturnResult, IStorageItem)> created = null;
@@ -286,12 +280,6 @@ namespace Files.Helpers
             }
         }
 
-        /// <summary>
-        /// Set a single file or folder to hidden or unhidden an refresh the
-        /// view after setting the flag
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="isHidden"></param>
         public static void SetHiddenAttributeItem(ListedItem item, bool isHidden, ItemManipulationModel itemManipulationModel)
         {
             item.IsHiddenItem = isHidden;

@@ -22,7 +22,6 @@ namespace Files.Filesystem
         {
             if (component.StartsWith(AppSettings.RecycleBinPath))
             {
-                // Handle the recycle bin: use the localized folder name
                 return new PathBoxItem()
                 {
                     Title = ApplicationData.Current.LocalSettings.Values.Get("RecycleBin_Title", "Recycle Bin"),
@@ -128,7 +127,6 @@ namespace Files.Filesystem
 
             if (parentFolder != null && !Path.IsPathRooted(value))
             {
-                // Relative path
                 var fullPath = Path.GetFullPath(Path.Combine(parentFolder.Path, value));
                 return new StorageFolderWithPath(await StorageFolder.GetFolderFromPathAsync(fullPath));
             }
@@ -184,7 +182,6 @@ namespace Files.Filesystem
 
             if (parentFolder != null && !Path.IsPathRooted(value))
             {
-                // Relative path
                 var fullPath = Path.GetFullPath(Path.Combine(parentFolder.Path, value));
                 return new StorageFileWithPath(await StorageFile.GetFileFromPathAsync(fullPath));
             }

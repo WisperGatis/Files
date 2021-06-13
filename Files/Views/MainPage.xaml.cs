@@ -22,9 +22,6 @@ using Windows.UI.Xaml.Navigation;
 
 namespace Files.Views
 {
-    /// <summary>
-    /// The root page of Files
-    /// </summary>
     public sealed partial class MainPage : Page
     {
         public SettingsViewModel AppSettings => App.AppSettings;
@@ -70,7 +67,6 @@ namespace Files.Views
         {
             if (!(ViewModel.MultitaskingControl is HorizontalMultitaskingControl))
             {
-                // Set multitasking control if changed and subscribe it to event for sidebar items updating
                 if (ViewModel.MultitaskingControl != null)
                 {
                     ViewModel.MultitaskingControl.CurrentInstanceChanged -= MultitaskingControl_CurrentInstanceChanged;
@@ -189,7 +185,6 @@ namespace Files.Views
         {
             var invokedItemContainer = e.InvokedItemContainer;
 
-            // All items must have DataContext except Settings item
             if (invokedItemContainer.DataContext is MainPageViewModel)
             {
                 SettingsDialog settingsDialog = new SettingsDialog();
@@ -198,30 +193,30 @@ namespace Files.Views
                 return;
             }
 
-            string navigationPath; // path to navigate
-            Type sourcePageType = null; // type of page to navigate
+            string navigationPath; 
+            Type sourcePageType = null; 
 
             switch ((invokedItemContainer.DataContext as INavigationControlItem).ItemType)
             {
                 case NavigationControlItemType.Location:
                     {
-                        var ItemPath = (invokedItemContainer.DataContext as INavigationControlItem).Path; // Get the path of the invoked item
+                        var ItemPath = (invokedItemContainer.DataContext as INavigationControlItem).Path; 
 
-                        if (string.IsNullOrEmpty(ItemPath)) // Section item
+                        if (string.IsNullOrEmpty(ItemPath)) 
                         {
                             navigationPath = invokedItemContainer.Tag?.ToString();
                         }
-                        else if (ItemPath.Equals("Home", StringComparison.OrdinalIgnoreCase)) // Home item
+                        else if (ItemPath.Equals("Home", StringComparison.OrdinalIgnoreCase)) 
                         {
                             if (ItemPath.Equals(SidebarAdaptiveViewModel.SidebarSelectedItem?.Path, StringComparison.OrdinalIgnoreCase))
                             {
-                                return; // return if already selected
+                                return; 
                             }
 
                             navigationPath = "NewTab".GetLocalized();
                             sourcePageType = typeof(WidgetsPage);
                         }
-                        else // Any other item
+                        else 
                         {
                             navigationPath = invokedItemContainer.Tag?.ToString();
                         }
@@ -253,7 +248,6 @@ namespace Files.Views
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Defers the status bar loading until after the page has loaded to improve startup perf
             FindName(nameof(StatusBarControl));
         }
 

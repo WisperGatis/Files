@@ -297,6 +297,11 @@ namespace FilesFullTrust
             return false;
         }
 
+        internal static Task<object> SendMessageAsync(NamedPipeServerStream connection, ValueSet valueSet, Type type)
+        {
+            throw new NotImplementedException();
+        }
+
         public static async Task SendMessageAsync(NamedPipeServerStream pipe, ValueSet valueSet, string requestID = null)
         {
             var message = new Dictionary<string, object>(valueSet);
@@ -373,5 +378,30 @@ namespace FilesFullTrust
         [DllImport(Lib.Shell32, SetLastError = false, CharSet = CharSet.Auto)]
         public static extern int SHQueryRecycleBin(string pszRootPath,
             ref SHQUERYRBINFO pSHQueryRBInfo);
+
+        internal static object ExtractSelectedIconsFromDLL(string v1, object p, int v2)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static Task SendMessageAsync(NamedPipeServerStream connection, ValueSet valueSet, int v)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static Task SendMessageAsync(NamedPipeServerStream connection, ValueSet valueSet, bool v)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static Task SendMessageAsync(NamedPipeServerStream connection, ValueSet valueSet, Dictionary<string, object>.Enumerator enumerator)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static Task SendMessageAsync<TOut>(NamedPipeServerStream connection, ValueSet valueSet, TOut @out)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

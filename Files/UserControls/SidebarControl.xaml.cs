@@ -51,9 +51,6 @@ namespace Files.UserControls
 
         public event EventHandler RecycleBinItemRightTapped;
 
-        /// <summary>
-        /// The Model for the pinned sidebar items
-        /// </summary>
         public SidebarPinnedModel SidebarPinnedModel => App.SidebarPinnedController.Model;
 
         public static readonly DependencyProperty EmptyRecycleBinCommandProperty = DependencyProperty.Register(nameof(EmptyRecycleBinCommand), typeof(ICommand), typeof(SidebarControl), new PropertyMetadata(null));
@@ -114,14 +111,8 @@ namespace Files.UserControls
             }
         }
 
-        /// <summary>
-        /// ShowUnpinItem property indicating whether the unpin button should by displayed when right-clicking an item in the navigation bar
-        /// </summary>
         private bool showUnpinItem;
 
-        /// <summary>
-        /// Binding property for the MenuFlyoutItem SideBarUnpinFromSideBar
-        /// </summary>
         public bool ShowUnpinItem
         {
             get => showUnpinItem;
@@ -346,7 +337,6 @@ namespace Files.UserControls
                 return;
             }
 
-            // Adding the original Location item dragged to the DragEvents data view
             var navItem = (sender as Microsoft.UI.Xaml.Controls.NavigationViewItem);
             args.Data.Properties.Add("sourceLocationItem", navItem);
         }
@@ -401,12 +391,10 @@ namespace Files.UserControls
             {
                 if (sender == dragOverItem)
                 {
-                    // Reset dragged over item
                     dragOverItem = null;
                 }
                 if (sender == dragOverSection)
                 {
-                    // Reset dragged over item
                     dragOverSection = null;
                 }
             }
@@ -419,7 +407,6 @@ namespace Files.UserControls
                 return;
             }
 
-            // If the dragged item is a folder or file from a file system
             if (e.DataView.Contains(StandardDataFormats.StorageItems))
             {
                 var deferral = e.GetDeferral();
@@ -469,21 +456,13 @@ namespace Files.UserControls
             }
             else if ((e.DataView.Properties["sourceLocationItem"] as Microsoft.UI.Xaml.Controls.NavigationViewItem)?.DataContext is LocationItem sourceLocationItem)
             {
-                // else if the drag over event is called over a location item
 
                 NavigationViewLocationItem_DragOver_SetCaptions(locationItem, sourceLocationItem, e);
             }
         }
 
-        /// <summary>
-        /// Sets the captions when dragging a location item over another location item
-        /// </summary>
-        /// <param name="senderLocationItem">The location item which fired the DragOver event</param>
-        /// <param name="sourceLocationItem">The source location item</param>
-        /// <param name="e">DragEvent args</param>
         private void NavigationViewLocationItem_DragOver_SetCaptions(LocationItem senderLocationItem, LocationItem sourceLocationItem, DragEventArgs e)
         {
-            // If the location item is the same as the original dragged item
             if (sourceLocationItem.Equals(senderLocationItem))
             {
                 e.AcceptedOperation = DataPackageOperation.None;
@@ -499,15 +478,14 @@ namespace Files.UserControls
 
         private void NavigationViewLocationItem_Drop(object sender, DragEventArgs e)
         {
-            dragOverItem = null; // Reset dragged over item
-            dragOverSection = null; // Reset dragged over section
+            dragOverItem = null; 
+            dragOverSection = null; 
 
             if (!((sender as Microsoft.UI.Xaml.Controls.NavigationViewItem).DataContext is LocationItem locationItem))
             {
                 return;
             }
 
-            // If the dropped item is a folder or file from a file system
             if (e.DataView.Contains(StandardDataFormats.StorageItems))
             {
                 VisualStateManager.GoToState(sender as Microsoft.UI.Xaml.Controls.NavigationViewItem, "Drop", false);
@@ -523,9 +501,6 @@ namespace Files.UserControls
             }
             else if ((e.DataView.Properties["sourceLocationItem"] as Microsoft.UI.Xaml.Controls.NavigationViewItem).DataContext is LocationItem sourceLocationItem)
             {
-                // Else if the dropped item is a location item
-
-                // Swap the two items
                 SidebarPinnedModel.SwapItems(sourceLocationItem, locationItem);
             }
         }
@@ -585,8 +560,8 @@ namespace Files.UserControls
 
         private void NavigationViewDriveItem_Drop(object sender, DragEventArgs e)
         {
-            dragOverItem = null; // Reset dragged over item
-            dragOverSection = null; // Reset dragged over section
+            dragOverItem = null; 
+            dragOverSection = null; 
 
             if (!((sender as Microsoft.UI.Xaml.Controls.NavigationViewItem).DataContext is DriveItem driveItem))
             {
@@ -660,7 +635,7 @@ namespace Files.UserControls
         private void IncrementSize(double val)
         {
             var newSize = AppSettings.SidebarWidth.Value + val;
-            AppSettings.SidebarWidth = new GridLength(newSize >= 0 ? newSize : 0); // passing a negative value will cause an exception
+            AppSettings.SidebarWidth = new GridLength(newSize >= 0 ? newSize : 0);
         }
 
         private void Border_PointerEntered(object sender, PointerRoutedEventArgs e)

@@ -66,14 +66,11 @@ namespace Files
 
         public static class AppData
         {
-            // Get the extensions that are available for this host.
-            // Extensions that declare the same contract string as the host will be recognized.
             internal static ExtensionManager FilePreviewExtensionManager { get; set; } = new ExtensionManager("com.files.filepreview");
         }
 
         public App()
         {
-            // Initialize logger
             Logger = new Logger(logWriter);
 
             UnhandledException += OnUnhandledException;
@@ -82,8 +79,7 @@ namespace Files
             Suspending += OnSuspending;
             LeavingBackground += OnLeavingBackground;
 
-            //LogManager.Configuration.Variables["LogPath"] = storageFolder.Path;
-            AppData.FilePreviewExtensionManager.Initialize(); // The extension manager can update UI, so pass it the UI dispatcher to use for UI updates
+            AppData.FilePreviewExtensionManager.Initialize();
         }
 
         private static async Task EnsureSettingsAndConfigurationAreBootstrapped()
@@ -104,7 +100,6 @@ namespace Files
             CloudDrivesManager ??= new CloudDrivesManager();
             WSLDistroManager ??= new WSLDistroManager();
 
-            // Start off a list of tasks we need to run before we can continue startup
             _ = Task.Factory.StartNew(async () =>
             {
                 await LibraryManager.EnumerateLibrariesAsync();
@@ -124,15 +119,9 @@ namespace Files
         public static string ExceptionStackTrace { get; set; }
         public static List<string> pathsToDeleteAfterPaste = new List<string>();
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
         protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             await logWriter.InitializeAsync("debug.log");
-            //start tracking app usage
             SystemInformation.Instance.TrackAppUse(e);
 
             Logger.Info("App launched");
@@ -141,21 +130,17 @@ namespace Files
 
             await EnsureSettingsAndConfigurationAreBootstrapped();
 
-            // Do not repeat app initialization when the Window already has content,
-            // just ensure that the window is active
             if (!(Window.Current.Content is Frame rootFrame))
             {
-                // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
                 rootFrame.CacheSize = 1;
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
-                    //TODO: Load state from previously suspended application
+                    //...sert a rien cette partie...
                 }
 
-                // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
 
@@ -168,9 +153,6 @@ namespace Files
 
                 if (rootFrame.Content == null)
                 {
-                    // When the navigation stack isn't restored navigate to the first page,
-                    // configuring the new page by passing required information as a navigation
-                    // parameter
                     rootFrame.Navigate(typeof(MainPage), e.Arguments, new SuppressNavigationTransitionInfo());
                 }
                 else
@@ -181,7 +163,6 @@ namespace Files
                     }
                 }
 
-                // Ensure the current window is active
                 Window.Current.Activate();
                 Window.Current.CoreWindow.Activated += CoreWindow_Activated;
             }
@@ -210,7 +191,6 @@ namespace Files
 
             await EnsureSettingsAndConfigurationAreBootstrapped();
 
-            // Window management
             if (!(Window.Current.Content is Frame rootFrame))
             {
                 rootFrame = new Frame();
@@ -244,7 +224,6 @@ namespace Files
                         }
                     }
 
-                    // Ensure the current window is active.
                     Window.Current.Activate();
                     Window.Current.CoreWindow.Activated += CoreWindow_Activated;
                     return;
@@ -266,7 +245,6 @@ namespace Files
                                 case ParsedCommandType.OpenDirectory:
                                     rootFrame.Navigate(typeof(MainPage), command.Payload, new SuppressNavigationTransitionInfo());
 
-                                    // Ensure the current window is active.
                                     Window.Current.Activate();
                                     Window.Current.CoreWindow.Activated += CoreWindow_Activated;
                                     return;
@@ -279,7 +257,6 @@ namespace Files
 
                                         rootFrame.Navigate(typeof(MainPage), command.Payload, new SuppressNavigationTransitionInfo());
 
-                                        // Ensure the current window is active.
                                         Window.Current.Activate();
                                         Window.Current.CoreWindow.Activated += CoreWindow_Activated;
 
@@ -287,7 +264,6 @@ namespace Files
                                     }
                                     catch (System.IO.FileNotFoundException ex)
                                     {
-                                        //Not a folder
                                         Debug.WriteLine($"File not found exception App.xaml.cs\\OnActivated with message: {ex.Message}");
                                     }
                                     catch (Exception ex)
@@ -315,7 +291,6 @@ namespace Files
                                         }
                                     }
 
-                                    // Ensure the current window is active.
                                     Window.Current.Activate();
                                     Window.Current.CoreWindow.Activated += CoreWindow_Activated;
 
@@ -329,8 +304,6 @@ namespace Files
                     var eventArgsForNotification = args as ToastNotificationActivatedEventArgs;
                     if (eventArgsForNotification.Argument == "report")
                     {
-                        // Launch the URI and open log files location
-                        //SettingsViewModel.OpenLogLocation();
                         SettingsViewModel.ReportIssueOnGitHub();
                     }
                     break;
@@ -338,7 +311,6 @@ namespace Files
 
             rootFrame.Navigate(typeof(MainPage), null, new SuppressNavigationTransitionInfo());
 
-            // Ensure the current window is active.
             Window.Current.Activate();
             Window.Current.CoreWindow.Activated += CoreWindow_Activated;
         }
@@ -348,29 +320,16 @@ namespace Files
             CoreApplication.EnablePrelaunch(true);
         }
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
         private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
-        /// <summary>
-        /// Invoked when application execution is being suspended.  Application state is saved
-        /// without knowing whether the application will be terminated or resumed with the contents
-        /// of memory still intact.
-        /// </summary>
-        /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             SaveSessionTabs();
 
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Save application state and stop any background activity
 
             LibraryManager?.Dispose();
             DrivesManager?.Dispose();
@@ -381,7 +340,7 @@ namespace Files
 #endif
         }
 
-        public static void SaveSessionTabs() // Enumerates through all tabs and gets the Path property and saves it to AppSettings.LastSessionPages
+        public static void SaveSessionTabs() 
         {
             if (AppSettings != null)
             {
@@ -400,11 +359,8 @@ namespace Files
             }
         }
 
-        // Occurs when an exception is not handled on the UI thread.
         private static void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e) => AppUnhandledException(e.Exception);
 
-        // Occurs when an exception is not handled on a background thread.
-        // ie. A task is fired and forgotten Task.Run(() => {...})
         private static void OnUnobservedException(object sender, UnobservedTaskExceptionEventArgs e) => AppUnhandledException(e.Exception);
 
         private static void AppUnhandledException(Exception ex)
@@ -445,7 +401,7 @@ namespace Files
 
             Debug.WriteLine(formattedException);
 
-            Debugger.Break(); // Please check "Output Window" for exception details (View -> Output Window) (CTRL + ALT + O)
+            Debugger.Break(); 
 
             SaveSessionTabs();
             Logger.Error(ex, formattedException);
@@ -486,10 +442,8 @@ namespace Files
                     }
                 };
 
-                // Create the toast notification
                 var toastNotif = new ToastNotification(toastContent.GetXml());
 
-                // And send the notification
                 ToastNotificationManager.CreateToastNotifier().Show(toastNotif);
             }
         }

@@ -65,8 +65,6 @@ namespace Files.Filesystem
             {
                 if (!Drives.Any(d => d.Type != DriveType.Removable))
                 {
-                    // Only show consent dialog if the exception is UnauthorizedAccessException
-                    // and the drives list is empty (except for Removable drives which don't require FileSystem access)
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         ShowUserConsentOnInit = true;
@@ -109,10 +107,9 @@ namespace Files.Filesystem
             {
                 await SyncSideBarItemsUI();
             }
-            catch (Exception) // UI Thread not ready yet, so we defer the previous operation until it is.
+            catch (Exception)
             {
                 System.Diagnostics.Debug.WriteLine($"RefreshUI Exception");
-                // Defer because UI-thread is not ready yet (and DriveItem requires it?)
                 CoreApplication.MainView.Activated += RefreshUI;
             }
         }
@@ -202,7 +199,6 @@ namespace Files.Filesystem
             DriveType type;
             try
             {
-                // Check if this drive is associated with a drive letter
                 var driveAdded = new DriveInfo(root.Path);
                 type = GetDriveType(driveAdded);
             }
@@ -214,7 +210,6 @@ namespace Files.Filesystem
             var thumbnail = await root.GetThumbnailAsync(ThumbnailMode.SingleItem, 40, ThumbnailOptions.UseCurrentScale);
             lock (drivesList)
             {
-                // If drive already in list, skip.
                 if (drivesList.Any(x => x.DeviceID == deviceId ||
                 string.IsNullOrEmpty(root.Path) ? x.Path.Contains(root.Name) : x.Path == root.Path))
                 {
@@ -230,7 +225,6 @@ namespace Files.Filesystem
 
                 drivesList.Add(driveItem);
             }
-            // Update the collection on the ui-thread.
             DeviceWatcher_EnumerationCompleted(null, null);
         }
 
@@ -241,13 +235,11 @@ namespace Files.Filesystem
             {
                 drivesList.RemoveAll(x => x.DeviceID == args.Id);
             }
-            // Update the collection on the ui-thread.
             DeviceWatcher_EnumerationCompleted(null, null);
         }
 
         private async Task<bool> GetDrivesAsync()
         {
-            // Flag set if any drive throws UnauthorizedAccessException
             bool unauthorizedAccessDetected = false;
 
             var drives = DriveInfo.GetDrives().ToList();
@@ -275,7 +267,6 @@ namespace Files.Filesystem
 
                 lock (drivesList)
                 {
-                    // If drive already in list, skip.
                     if (drivesList.Any(x => x.Path == drive.Name))
                     {
                         continue;
@@ -351,14 +342,12 @@ namespace Files.Filesystem
                 return null;
             }
             var rootPath = Path.GetPathRoot(devicePath);
-            if (devicePath.StartsWith("\\\\?\\")) // USB device
+            if (devicePath.StartsWith("\\\\?\\"))
             {
-                // Check among already discovered drives
                 StorageFolder matchingDrive = App.DrivesManager.Drives.FirstOrDefault(x =>
                     Helpers.PathNormalization.NormalizePath(x.Path) == Helpers.PathNormalization.NormalizePath(rootPath))?.Root;
                 if (matchingDrive == null)
                 {
-                    // Check on all removable drives
                     var remDevices = await DeviceInformation.FindAllAsync(StorageDevice.GetDeviceSelector());
                     foreach (var item in remDevices)
                     {
@@ -382,12 +371,12 @@ namespace Files.Filesystem
                     return new StorageFolderWithPath(matchingDrive, rootPath);
                 }
             }
-            else if (devicePath.StartsWith("\\\\")) // Network share
+            else if (devicePath.StartsWith("\\\\")) 
             {
-                rootPath = rootPath.LastIndexOf("\\") > 1 ? rootPath.Substring(0, rootPath.LastIndexOf("\\")) : rootPath; // Remove share name
+                rootPath = rootPath.LastIndexOf("\\") > 1 ? rootPath.Substring(0, rootPath.LastIndexOf("\\")) : rootPath; 
                 return new StorageFolderWithPath(await StorageFolder.GetFolderFromPathAsync(rootPath), rootPath);
             }
-            // It's ok to return null here, on normal drives StorageFolder.GetFolderFromPathAsync works
+
             return null;
         }
 
@@ -408,12 +397,10 @@ namespace Files.Filesystem
 
                     lock (drivesList)
                     {
-                        // If drive already in list, skip.
                         var matchingDrive = drivesList.FirstOrDefault(x => x.DeviceID == deviceId ||
                         string.IsNullOrEmpty(rootAdded.Result.Path) ? x.Path.Contains(rootAdded.Result.Name) : x.Path == rootAdded.Result.Path);
                         if (matchingDrive != null)
                         {
-                            // Update device id to match drive letter
                             matchingDrive.DeviceID = deviceId;
                             return;
                         }

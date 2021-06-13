@@ -48,11 +48,6 @@ namespace Files.Extensions
             }
         }
 
-        /// <summary>
-        /// Gets user friendly text representing the time difference between the current time and the specified time
-        /// </summary>
-        /// <param name="dt"></param>
-        /// <returns>User friendly strings representing the text and period and an icon glyph to display</returns>
         public static (string text, string range, string glyph, int index) GetFriendlyTimeSpan(this DateTimeOffset dt)
         {
             Windows.Globalization.Calendar cal = new Windows.Globalization.Calendar();
@@ -114,7 +109,6 @@ namespace Files.Extensions
         private static Calendar calendar = new CultureInfo(CultureInfo.CurrentUICulture.Name).Calendar;
         public static int GetWeekOfYear(this DateTimeOffset t)
         {
-            // Should we use the system setting for the first day of week in the future?
             return calendar.GetWeekOfYear(t.DateTime, CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
         }
 

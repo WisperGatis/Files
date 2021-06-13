@@ -54,7 +54,6 @@ namespace Files.Helpers.FileListCache
                 Size = 1
             });
 
-            // save entry to persistent cache in background
             return persistentAdapter.SaveFileDisplayNameToCache(path, displayName);
         }
     }

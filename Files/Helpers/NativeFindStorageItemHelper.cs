@@ -20,7 +20,7 @@ namespace Files.Helpers
 
             public SYSTEMTIME(DateTime dt)
             {
-                dt = dt.ToUniversalTime();  // SetSystemTime expects the SYSTEMTIME in UTC
+                dt = dt.ToUniversalTime();  
                 Year = (short)dt.Year;
                 Month = (short)dt.Month;
                 DayOfWeek = (short)dt.DayOfWeek;

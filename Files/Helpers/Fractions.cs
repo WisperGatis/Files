@@ -3,9 +3,6 @@ using System.Linq;
 
 namespace Files.Helpers
 {
-    /// <summary>
-    /// Some simple helper methods to convert doubles to fractions
-    /// </summary>
     public static class Fractions
     {
         public static string ToFractions(this double number, int precision = 4)

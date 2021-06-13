@@ -74,7 +74,6 @@ namespace Files.Filesystem.StorageEnumerators
                 if (intermediateAction != null && (count == 32 || sampler.CheckNow()))
                 {
                     await intermediateAction(tempList);
-                    // clear the temporary list every time we do an intermediate action
                     tempList.Clear();
                 }
             } while (hasNextFile);
@@ -113,7 +112,6 @@ namespace Files.Filesystem.StorageEnumerators
             }
             catch (ArgumentException)
             {
-                // Invalid date means invalid findData, do not add to list
                 return null;
             }
             var itemPath = Path.Combine(pathRoot, findData.cFileName);
@@ -163,13 +161,13 @@ namespace Files.Filesystem.StorageEnumerators
             string itemName;
             if (App.AppSettings.ShowFileExtensions && !findData.cFileName.EndsWith(".lnk") && !findData.cFileName.EndsWith(".url"))
             {
-                itemName = findData.cFileName; // never show extension for shortcuts
+                itemName = findData.cFileName; 
             }
             else
             {
                 if (findData.cFileName.StartsWith("."))
                 {
-                    itemName = findData.cFileName; // Always show full name for dotfiles.
+                    itemName = findData.cFileName;
                 }
                 else
                 {
@@ -200,7 +198,6 @@ namespace Files.Filesystem.StorageEnumerators
             }
             catch (ArgumentException)
             {
-                // Invalid date means invalid findData, do not add to list
                 return null;
             }
 
@@ -234,7 +231,7 @@ namespace Files.Filesystem.StorageEnumerators
                         { "fileop", "ParseLink" },
                         { "filepath", itemPath }
                     });
-                    // If the request was canceled return now
+
                     if (cancellationToken.IsCancellationRequested)
                     {
                         return null;
