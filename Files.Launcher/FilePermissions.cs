@@ -72,7 +72,6 @@ namespace FilesFullTrust
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    // User does not have rights to set access rules
                     return false;
                 }
                 catch (Exception)
@@ -110,7 +109,6 @@ namespace FilesFullTrust
                 }
             }
 
-            // Set through powershell (admin)
             return Win32API.RunPowershellCommand($"-command \"try {{ $path = '{FilePath}'; $ID = new-object System.Security.Principal.SecurityIdentifier('{ownerSid}'); $acl = get-acl $path; $acl.SetOwner($ID); set-acl -path $path -aclObject $acl }} catch {{ exit 1; }}\"", true);
         }
 
@@ -130,14 +128,12 @@ namespace FilesFullTrust
                 }
                 else
                 {
-                    // File or folder does not exists
                     fss = null;
                     return false;
                 }
             }
             catch (UnauthorizedAccessException)
             {
-                // User does not have rights to read access rules
                 fss = null;
                 return false;
             }
