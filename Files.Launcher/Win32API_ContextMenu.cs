@@ -260,7 +260,7 @@ namespace FilesFullTrust
                     var menuItem = new ContextMenuItem();
                     var container = new SafeCoTaskMemString(512);
                     mii.dwTypeData = (IntPtr)container;
-                    mii.cch = (uint)container.Capacity - 1; // https://devblogs.microsoft.com/oldnewthing/20040928-00/?p=37723
+                    mii.cch = (uint)container.Capacity - 1;
                     var retval = User32.GetMenuItemInfo(hMenu, ii, true, ref mii);
                     if (!retval)
                     {
@@ -268,7 +268,7 @@ namespace FilesFullTrust
                         continue;
                     }
                     menuItem.Type = (MenuItemType)mii.fType;
-                    menuItem.ID = (int)(mii.wID - 1); // wID - idCmdFirst
+                    menuItem.ID = (int)(mii.wID - 1);
                     if (menuItem.Type == MenuItemType.MFT_STRING)
                     {
                         Debug.WriteLine("Item {0} ({1}): {2}", ii, mii.wID, mii.dwTypeData);
@@ -318,8 +318,6 @@ namespace FilesFullTrust
             {
                 if (offset > 5000)
                 {
-                    // Hackish workaround to avoid an AccessViolationException on some items,
-                    // notably the "Run with graphic processor" menu item of NVidia cards
                     return null;
                 }
                 SafeCoTaskMemString commandString = null;
@@ -332,13 +330,11 @@ namespace FilesFullTrust
                 }
                 catch (Exception ex) when (ex is InvalidCastException || ex is ArgumentException)
                 {
-                    // TODO: investigate this..
                     Debug.WriteLine(ex);
                     return null;
                 }
                 catch (Exception ex) when (ex is COMException || ex is NotImplementedException)
                 {
-                    // Not every item has an associated verb
                     return null;
                 }
                 finally
@@ -443,10 +439,6 @@ namespace FilesFullTrust
             }
         }
 
-        // There is usually no need to define Win32 COM interfaces/P-Invoke methods here.
-        // The Vanara library contains the definitions for all members of Shell32.dll, User32.dll and more
-        // The ones below are due to bugs in the current version of the library and can be removed once fixed
-        // https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfoa
         private enum HBITMAP_HMENU : long
         {
             HBMMENU_CALLBACK = -1,

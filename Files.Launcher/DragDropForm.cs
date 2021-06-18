@@ -47,7 +47,6 @@ namespace FilesFullTrust
             this.Controls.Add(label);
             this.dropPath = dropPath;
 
-            // Create window over Files window
             this.StartPosition = FormStartPosition.Manual;
             var Handle = Vanara.PInvoke.User32.WindowFromPoint(Cursor.Position);
             Vanara.PInvoke.User32.GetWindowRect(Handle, out var lpRect);
@@ -58,7 +57,6 @@ namespace FilesFullTrust
             {
                 if (this.IsHandleCreated)
                 {
-                    // If another window is created, close this one
                     this.Invoke(new InvokeDelegate(() => this.Close()));
                 }
             });
@@ -80,7 +78,7 @@ namespace FilesFullTrust
                 {
                     "#FFFFFFFF" => Windows.UI.Xaml.ElementTheme.Light,
                     "#FF000000" => Windows.UI.Xaml.ElementTheme.Dark,
-                    _ => Windows.UI.Xaml.ElementTheme.Default // Unknown theme
+                    _ => Windows.UI.Xaml.ElementTheme.Default
                 };
             }
             return appTheme;
@@ -96,7 +94,6 @@ namespace FilesFullTrust
             {
                 if (!this.DesktopBounds.Contains(Cursor.Position))
                 {
-                    // After some time check whether the mouse is still inside the drop window
                     this.Close();
                     (s as Timer).Dispose();
                 }
@@ -119,8 +116,6 @@ namespace FilesFullTrust
                 {
                     try
                     {
-                        // Move files to destination
-                        // Works for 7zip, Winrar which unpack the items in the temp folder
                         var destName = Path.GetFileName(file.TrimEnd(Path.PathSeparator));
                         Directory.Move(file, Path.Combine(dropPath, destName));
                     }
@@ -135,7 +130,6 @@ namespace FilesFullTrust
 
         private void DragDropForm_DragOver(object sender, DragEventArgs e)
         {
-            // Should handle "Shell ID List" as well
             if (e.Data.GetDataPresent("FileDrop"))
             {
                 e.Effect = DragDropEffects.All;
@@ -150,8 +144,6 @@ namespace FilesFullTrust
         {
             get
             {
-                // Turn on WS_EX_TOOLWINDOW style bit
-                // Window won't show in alt-tab
                 CreateParams cp = base.CreateParams;
                 cp.ExStyle |= 0x80;
                 return cp;
