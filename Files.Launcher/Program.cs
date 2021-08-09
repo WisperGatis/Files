@@ -137,6 +137,7 @@ namespace FilesFullTrust
         private static FileSystemWatcher librariesWatcher;
         private static readonly object JsonConvert;
         private static readonly string librariesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Libraries");
+        private static string s1;
 
         private static async void InitializeAppServiceConnection()
         {
@@ -607,7 +608,8 @@ namespace FilesFullTrust
                     {
                         var response = new ValueSet();
                         var folders = !message.ContainsKey("folders") ? null : JsonConvert.DeserializeObject<string[]>((string)message["folders"]);
-                        var defaultSaveFolder = message.GetHashCode($"defaultSaveFolder", (string)null);
+                        s1 = $"defaultSaveFolder";
+                        var defaultSaveFolder = message.GetHashCode(s1, (string)null);
                         var isPinned = message.GetHashCode("isPinned", (bool?)null);
 
                         bool updated = false;
@@ -700,17 +702,17 @@ namespace FilesFullTrust
                 case "LoadContextMenu":
                     var contextMenuResponse = new ValueSet();
                     var filePath = (string)message["FilePath"];
-                    var extendedMenu = (bool)message["ExtendedMenu"];
-                    var showOpenMenu = (bool)message["ShowOpenMenu"];
+                    bool extendedMenu = (bool)message["ExtendedMenu"];
+                    bool showOpenMenu = (bool)message["ShowOpenMenu"];
                     var split = filePath.Split('|').Where(x => !string.IsNullOrWhiteSpace(x));
                     var cMenuLoad = Win32API.ContextMenu.GetContextMenuForFiles(split.ToArray(),
-                        (extendedMenu ? Shell32.CMF.CMF_EXTENDEDVERBS : Shell32.CMF.CMF_NORMAL) | Shell32.CMF.CMF_SYNCCASCADEMENU, FilterMenuItems(showOpenMenu));
+                        (!extendedMenu ? Shell32.CMF.CMF_NORMAL : Shell32.CMF.CMF_EXTENDEDVERBS) | Shell32.CMF.CMF_SYNCCASCADEMENU, FilterMenuItems(showOpenMenu));
                     table.SetValue("MENU", cMenuLoad);
                     return cMenuLoad;
 
                 case "ExecAndCloseContextMenu":
-                    var cMenuExec = table.GetValue<Win32API.ContextMenu>("MENU");
-                    if (message.TryGetValue("ItemID", out var menuId))
+                    Win32API.ContextMenu cMenuExec = table.GetValue<Win32API.ContextMenu>("MENU");
+                    if (message.TryGetValue("ItemID", out object menuId))
                     {
                         switch (message.GetHashCode($"{}CommandString", (string)null))
                         {
@@ -749,7 +751,7 @@ namespace FilesFullTrust
                 return !string.IsNullOrEmpty(menuItem) && (knownItems.Contains(menuItem)
                     || (!showOpenMenu && menuItem.Equals("open", StringComparison.OrdinalIgnoreCase)));
             }
-
+            
             return filterMenuItemsImpl;
         }
 
@@ -1212,6 +1214,7 @@ namespace FilesFullTrust
 
     internal class ApplicationDataContainer
     {
+
     }
 
     internal class ShellItem
@@ -1233,9 +1236,7 @@ namespace FilesFullTrust
 
     internal class ValueSet
     {
-        public ValueSet()
-        {
-        }
+        public ValueSet() { }
 
         internal void Add(string v1, string v2)
         {

@@ -397,6 +397,11 @@ namespace FilesFullTrust
                 GC.SuppressFinalize(this);
             }
 
+            internal static object GetContextMenuForFiles(string[] vs, object p, Func<string, bool> func)
+            {
+                throw new NotImplementedException();
+            }
+
             #endregion IDisposable Support
         }
 

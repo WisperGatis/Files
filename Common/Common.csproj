@@ -4,4 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="5.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.6.21352.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0-preview.6.21352.12" />
+    <PackageReference Include="Microsoft.UI.Xaml" Version="2.6.1" />
+    <PackageReference Include="Vanara.PInvoke.Mpr" Version="3.3.11" />
+    <PackageReference Include="Vanara.Windows.Shell" Version="3.3.11" />
+  </ItemGroup>
+
 </Project>
